@@ -35,20 +35,20 @@ function bodyGeo(key,taxi){const id=key+(taxi?'T':'');if(BODY[id])return BODY[id
  return BODY[id]={g,gg,F:b.F,sp}}
 function makeCar(d,lit){const key=d.shape,taxi=d.id==='taxi',B=bodyGeo(key,taxi),sp=B.sp,F=B.F,g=new T.Group(),bd=new T.Group(),w=d.wid,wr=d.Rw,wheels=[],zf=sp.zf,zr=sp.zr,van=key==='van',fia=key==='boxy';g.add(bd);
  const mat=(c,m,r)=>new T.MeshStandardMaterial({color:col(c),metalness:m,roughness:r});
- const paint=new T.MeshPhysicalMaterial({color:taxi?0xffffff:col(d.col),vertexColors:taxi,metalness:.15,roughness:.38,clearcoat:1,clearcoatRoughness:.05}),pp=taxi?mat(0x15171a,.3,.4):paint;
- const glassM=new T.MeshStandardMaterial({color:col(0x0b1118),metalness:.7,roughness:.06,envMapIntensity:1.4}),dark=mat(0x101113,.2,.75),tire=new T.MeshStandardMaterial({color:col(0x0c0c0d),roughness:.92,side:T.DoubleSide}),rim=mat(0xb9bdc2,.9,.3),chr=mat(0xc8ccd0,1,.2),red=mat(0xb22222,.2,.5),blk=mat(0x111214,.2,.8),white=mat(0xeeeeee,0,.5);
+ const paint=new T.MeshPhysicalMaterial({color:taxi?0xffffff:col(d.col),vertexColors:taxi,metalness:.22,roughness:.3,clearcoat:1,clearcoatRoughness:.08,envMapIntensity:1.3}),pp=taxi?mat(0x15171a,.3,.4):paint;
+ const glassM=new T.MeshStandardMaterial({color:col(0x10161e),metalness:.85,roughness:.05,envMapIntensity:1.9}),dark=mat(0x101113,.2,.75),tire=new T.MeshStandardMaterial({color:col(0x0c0c0d),roughness:.92,side:T.DoubleSide}),rim=mat(0xb9bdc2,.9,.3),chr=mat(0xc8ccd0,1,.2),red=mat(0xb22222,.2,.5),blk=mat(0x111214,.2,.8),white=mat(0xeeeeee,0,.5);
  const geo=lit?B.g.clone():B.g,ggeo=lit?B.gg.clone():B.gg,body=new T.Mesh(geo,paint);body.castShadow=true;bd.add(body);bd.add(new T.Mesh(ggeo,glassM));
  let crack=null;if(lit){crack=new T.Mesh(ggeo,new T.MeshBasicMaterial({map:crackTex(),transparent:true,opacity:.3,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));crack.visible=false;bd.add(crack)}
  const Bx=(a,b,c)=>new T.BoxGeometry(a,b,c),add=(geom,m,x,y,z)=>{const o=new T.Mesh(geom,m);o.position.set(x,y,z);o.castShadow=true;bd.add(o);return o};
  const hl=new T.MeshStandardMaterial({color:col(0xfff2c8),emissive:col(0xfff2c8),emissiveIntensity:.6}),tl=new T.MeshStandardMaterial({color:col(0x8a0d0d),emissive:col(0xff1010),emissiveIntensity:.5}),zrf=zr-.012,zff=zf+.012;
  for(const sd of[-1,1]){
-  if(van){add(Bx(.09,.5,.03),tl,sd*.66,1.05,zrf);add(Bx(.3,.18,.03),hl,sd*.56,.72,zff)}
-  else if(fia){add(Bx(.34,.06,.03),tl,sd*.42,.68,zrf);add(Bx(.07,.2,.03),tl,sd*.33,.6,zrf);add(Bx(.26,.14,.03),hl,sd*.52,.56,zff)}
-  else{add(Bx(.36,.13,.03),tl,sd*.4,.7,zrf);add(Bx(.3,.1,.03),hl,sd*.46,.56,zff)}
+  if(van){add(Bx(.11,.52,.04),chr,sd*.66,1.05,zrf);add(Bx(.09,.5,.03),tl,sd*.66,1.05,zrf-.008);add(Bx(.32,.2,.04),chr,sd*.56,.72,zff);add(Bx(.28,.16,.03),hl,sd*.56,.72,zff+.012)}
+  else if(fia){add(Bx(.36,.09,.04),chr,sd*.42,.68,zrf);add(Bx(.34,.06,.03),tl,sd*.42,.68,zrf-.008);add(Bx(.09,.22,.04),chr,sd*.33,.6,zrf);add(Bx(.07,.2,.03),tl,sd*.33,.6,zrf-.008);const hb=add(new T.CylinderGeometry(.085,.085,.04,18),chr,sd*.52,.56,zff);hb.rotation.x=Math.PI/2;const hl2=add(new T.CylinderGeometry(.07,.07,.03,18),hl,sd*.52,.56,zff+.012);hl2.rotation.x=Math.PI/2}
+  else{add(Bx(.38,.15,.04),chr,sd*.4,.7,zrf);add(Bx(.36,.13,.03),tl,sd*.4,.7,zrf-.008);add(Bx(.32,.12,.04),chr,sd*.46,.56,zff);add(Bx(.3,.1,.03),hl,sd*.46,.56,zff+.012);add(Bx(.26,.025,.02),new T.MeshStandardMaterial({color:col(0xdff2ff),emissive:col(0xdff2ff),emissiveIntensity:1.6}),sd*.46,.48,zff+.02)}
   const zm=van?1.9:fia?.75:.86,my=van?1.55:fia?.95:1,ms=van?1.35:1;add(Bx(.1*ms,.1*ms,.18*ms),pp,sd*(F.wb(zm)+.09),my,zm);add(Bx(.02,.07*ms,.14*ms),dark,sd*(F.wb(zm)+.09),my,zm-.07*ms)}
- if(van){add(Bx(.7,.2,.03),dark,0,.62,zff);add(Bx(w*.98,.24,.12),blk,0,.5,zr-.06);add(Bx(w*.98,.24,.12),blk,0,.5,zf+.06)}
- else if(fia){add(Bx(.62,.14,.03),dark,0,.55,zff);add(Bx(.66,.02,.03),chr,0,.64,zff);add(Bx(w*.98,.1,.1),chr,0,.46,zr-.05);add(Bx(w*.98,.1,.1),chr,0,.46,zf+.05)}
- else{add(Bx(.5,.07,.03),dark,0,.62,zff);add(Bx(.52,.015,.03),chr,0,.69,zff);add(Bx(.95,.09,.03),dark,0,.45,zrf);add(Bx(1.05,.08,.03),dark,0,.44,zff)}
+ if(van){add(Bx(.7,.2,.03),dark,0,.62,zff);add(Bx(.72,.02,.02),chr,0,.68,zff+.012);add(Bx(w*.98,.26,.14),pp,0,.52,zr-.08);add(Bx(w*.98,.26,.14),pp,0,.52,zf+.08);add(Bx(.5,.06,.02),dark,0,.4,zf+.16)}
+ else if(fia){add(Bx(.62,.14,.03),dark,0,.55,zff);for(const gy of[.52,.58,.64])add(Bx(.6,.015,.02),chr,0,gy,zff+.008);add(Bx(w*1.0,.11,.12),chr,0,.44,zr-.07);add(Bx(w*1.0,.11,.12),chr,0,.44,zf+.07)}
+ else{add(Bx(.5,.09,.03),dark,0,.6,zff);for(const gy of[.565,.6,.635])add(Bx(.48,.014,.02),chr,0,gy,zff+.008);add(Bx(.52,.015,.03),chr,0,.71,zff);add(Bx(w*.98,.1,.05),pp,0,.46,zrf-.02);add(Bx(w*.98,.11,.06),pp,0,.45,zff+.02);add(Bx(.3,.05,.02),dark,0,.4,zff+.04);add(Bx(.1,.03,.02),dark,-.5,.4,zff+.045);add(Bx(.1,.03,.02),dark,.5,.4,zff+.045)}
  const band=(taxi||van)?'#f08a24':'#4aa3d6',pn={verna:['٤٦٨','ب ص ع'],taxi:['٧٢٣','ا ج ر'],micro:['٣١٩','ط ل ن'],fiat:['٥٦٢','د ف ق']}[d.id];
  for(const sd of[-1,1]){const m=new T.Mesh(new T.PlaneGeometry(.38,.19),new T.MeshStandardMaterial({map:plate(band,pn[0],pn[1]),roughness:.4}));m.position.set(0,sd>0?(van?.8:.52):(van?.8:fia?.64:.62),sd>0?zf+.04:zr-.04);if(sd<0)m.rotation.y=Math.PI;bd.add(m)}
  const seams=van?[1,-.15]:fia?[.7,-.12,-1.3]:[.72,-.1,-1.18],hand=van?[1.3,.4]:fia?[.1,-.95]:[.1,-.92];
@@ -57,12 +57,16 @@ function makeCar(d,lit){const key=d.shape,taxi=d.id==='taxi',B=bodyGeo(key,taxi)
  if(taxi){const c=document.createElement('canvas');c.width=256;c.height=80;const x=c.getContext('2d');x.fillStyle='#ffd24a';x.fillRect(0,0,256,80);x.fillStyle='#111';x.font='700 54px Tahoma,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('تاكسي',128,42);
   const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;add(Bx(.54,.17,.2),new T.MeshStandardMaterial({map:tx,emissiveMap:tx,emissive:0xffffff,emissiveIntensity:1.1}),0,F.yT(-.3)+.08,-.3)}
  if(d.id==='verna'||taxi)add(Bx(w*.78,.03,.08),dark,0,F.yT(zr+.3)+.02,zr+.3);
+ if(!van&&!fia)add(new T.CylinderGeometry(.008,.014,.3,6),dark,.32,F.yT(zr+.55)+.15,zr+.55).rotation.x=-.2;
  if(van){for(const sd of[-1,1])add(Bx(.008,.1,4.35),red,sd*(F.wb(0)+.004),1.12,-.15);add(Bx(1.5,.1,.01),red,0,1.12,zr-.006);add(Bx(.5,.05,.5),paint,0,2,.3)}
  if(fia){for(const sd of[-1,1]){for(const zc of[-sp.wheelZ,sp.wheelZ])add(Bx(.07,.12,.95),paint,sd*(F.wb(zc)+.03),.68,zc);add(Bx(.16,.004,.8),white,sd*.14,.93,-1.6);add(Bx(.04,.1,.24),dark,sd*.55,.97,-1.95)}add(Bx(w*.78,.035,.26),dark,0,.995,-1.95)}
  for(const[sx,zc,front]of[[-1,sp.wheelZ,1],[1,sp.wheelZ,1],[-1,-sp.wheelZ,0],[1,-sp.wheelZ,0]]){const tw=fia&&!front?.25:.19,piv=new T.Group();piv.position.set(sx*(F.wb(zc)-tw/2-.02),wr,zc);g.add(piv);const spn=new T.Group();piv.add(spn);
+  const disc=new T.Mesh(new T.CylinderGeometry(wr*.5,wr*.5,tw*.7,20),mat(0x5a5e63,.8,.45));disc.rotation.z=Math.PI/2;spn.add(disc);
+  const cal=new T.Mesh(Bx(tw*.5,wr*.28,wr*.34),mat(0x8a1f1f,.3,.5));cal.position.set(sx*tw*.28,wr*.32,0);piv.add(cal);
+  const lip=new T.Mesh(new T.TorusGeometry(wr*.6,tw*.16,10,24),rim);lip.rotation.y=Math.PI/2;lip.position.x=sx*tw*.18;spn.add(lip);
   const tg=new T.LatheGeometry([[.62,-.5],[.86,-.5],[.97,-.42],[1,-.2],[1,.2],[.97,.42],[.86,.5],[.62,.5]].map(q=>new T.Vector2(q[0]*wr,q[1]*tw)),28),t=new T.Mesh(tg,tire);t.rotation.z=Math.PI/2;t.castShadow=true;spn.add(t);
-  const r=new T.Mesh(new T.CylinderGeometry(wr*.64,wr*.64,tw*.9,22),rim);r.rotation.z=Math.PI/2;spn.add(r);const hub=new T.Mesh(new T.CylinderGeometry(wr*.2,wr*.2,tw*.96,12),dark);hub.rotation.z=Math.PI/2;spn.add(hub);
-  for(let k=0;k<5;k++){const b=new T.Mesh(Bx(tw*.92,wr*.09,wr*1.14),dark);b.rotation.x=k*1.2566;spn.add(b)}
+  const hub=new T.Mesh(new T.CylinderGeometry(wr*.16,wr*.16,tw*1.0,12),rim);hub.rotation.z=Math.PI/2;spn.add(hub);
+  for(let k=0;k<5;k++){const b=new T.Mesh(Bx(tw*.7,wr*.13,wr*.98),rim);b.position.x=sx*tw*.18;b.rotation.x=k*1.2566;spn.add(b)}
   const ln=new T.Mesh(new T.CylinderGeometry(wr+.04,wr+.04,w*.8,20,1,true,0,Math.PI),new T.MeshStandardMaterial({color:col(0x0a0a0b),roughness:1,side:T.BackSide}));ln.rotation.z=Math.PI/2;ln.position.set(0,wr,zc);g.add(ln);wheels.push({piv,sp:spn,front})}
  let spot=null;if(lit){spot=new T.SpotLight(0xfff0d0,0,110,.55,.55,1.2);spot.position.set(0,.9,zf-.2);const tg=new T.Object3D();tg.position.set(0,.4,zf+40);g.add(spot,tg);spot.target=tg}
  const glows=[];for(const sd of[-1,1]){const s=new T.Sprite(new T.SpriteMaterial({map:glowTex(),color:0xff2a1a,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:0}));s.position.set(sd*(van?.66:.4),van?1.05:.7,zr-.12);s.scale.set(.9,.9,.9);bd.add(s);glows.push(s)}

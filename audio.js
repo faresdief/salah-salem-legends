@@ -1,24 +1,47 @@
 (function(S){'use strict';
+// All sounds are synthesized with the Web Audio API. No external audio files,
+// so nothing here needs a license or a credit line.
 class AudioEngine{
- constructor(){this.ctx=null;this.muted=false}
+ constructor(){this.ctx=null;this.muted=false;this.pThr=0;this.crk=0}
  init(){try{if(this.ctx){if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});return}
-  const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const c=this.ctx=new A();
-  this.m=c.createGain();this.m.gain.value=this.muted?0:.5;this.m.connect(c.destination);
-  this.eo=c.createOscillator();this.eo.type='sawtooth';this.ef=c.createBiquadFilter();this.ef.type='lowpass';this.eg=c.createGain();this.eg.gain.value=0;
-  this.eo.connect(this.ef);this.ef.connect(this.eg);this.eg.connect(this.m);this.eo.start();
-  const b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
-  const n=c.createBufferSource();n.buffer=b;n.loop=true;const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=1800;this.ng=c.createGain();this.ng.gain.value=0;
-  n.connect(f);f.connect(this.ng);this.ng.connect(this.m);n.start();
+ const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const c=this.ctx=new A();
+ this.m=c.createGain();this.m.gain.value=this.muted?0:.55;this.m.connect(c.destination);
+ // Engine: saw + sub-square + detuned harmonic through a lowpass. Pitch and
+ // filter follow RPM; a second pair of oscillators adds a growl an octave down.
+ this.eo=[];const mk=(type,f,g)=>{const o=c.createOscillator();o.type=type;o.frequency.value=f;const gn=c.createGain();gn.gain.value=g;o.connect(gn);return{o,g:gn}};
+ this.ef=c.createBiquadFilter();this.ef.type='lowpass';this.ef.frequency.value=400;this.ef.Q.value=1.1;
+ this.eg=c.createGain();this.eg.gain.value=0;this.ef.connect(this.eg);this.eg.connect(this.m);
+ const e1=mk('sawtooth',60,.5),e2=mk('square',30,.55),e3=mk('sawtooth',121,.16);
+ for(const e of[e1,e2,e3]){e.g.connect(this.ef);e.o.start();this.eo.push(e)}
+ // Tyre/skid noise
+ const b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+ const n=c.createBufferSource();n.buffer=b;n.loop=true;
+ const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=1900;f.Q.value=.8;this.ng=c.createGain();this.ng.gain.value=0;
+ n.connect(f);f.connect(this.ng);this.ng.connect(this.m);n.start();
+ // Intake/exhaust breath: same noise through a low band that follows RPM
+ const n2=c.createBufferSource();n2.buffer=b;n2.loop=true;
+ this.xf=c.createBiquadFilter();this.xf.type='bandpass';this.xf.frequency.value=300;this.xf.Q.value=1.4;
+ this.xg=c.createGain();this.xg.gain.value=0;n2.connect(this.xf);this.xf.connect(this.xg);this.xg.connect(this.m);n2.start();
  }catch(e){this.ctx=null}}
- update(pct,drift,on){const c=this.ctx;if(!c)return;const t=c.currentTime;
-  this.eo.frequency.setTargetAtTime(45+pct*170,t,.05);this.ef.frequency.setTargetAtTime(300+pct*1300,t,.05);
-  this.eg.gain.setTargetAtTime(on?.1+pct*.1:0,t,.08);this.ng.gain.setTargetAtTime(on&&drift?.12:0,t,.05)}
+ update(pct,drift,on,thr){const c=this.ctx;if(!c)return;const t=c.currentTime;pct=Math.max(0,Math.min(1,pct||0));thr=thr||0;
+ const base=52+pct*235,load=on?(.35+thr*.65):0;
+ for(let i=0;i<3;i++){const o=this.eo[i].o,mult=i===0?1:i===1?.5:2.01;o.frequency.setTargetAtTime(base*mult*(1+Math.sin(t*37+i)*.004),t,.03)}
+ this.ef.frequency.setTargetAtTime(280+pct*900+thr*1400,t,.05);
+ this.eg.gain.setTargetAtTime(on?(.06+pct*.05+thr*.09)*1:0,t,.06);
+ this.xf.frequency.setTargetAtTime(160+pct*420,t,.05);
+ this.xg.gain.setTargetAtTime(on?(.015+thr*.05):0,t,.08);
+ this.ng.gain.setTargetAtTime(on&&drift?.13:0,t,.05);
+ // Exhaust crackle when lifting off at revs
+ if(on&&this.pThr>.55&&thr<.15&&pct>.45&&this.crk<=0){this.crk=.25+Math.random()*.3}
+ this.pThr=thr;
+ if(this.crk>0){this.crk-=1/60;if(Math.random()<.16)this.tone(70+Math.random()*90,.05,'square',.045)}}
  tone(f,d,type,v,w,to){const c=this.ctx;if(!c)return;try{const t=c.currentTime+(w||0),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
-  if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(this.m);o.start(t);o.stop(t+d+.02)}catch(e){}}
+ if(to)o.frequency.exponentialRampToValueAtTime(to,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(this.m);o.start(t);o.stop(t+d+.02)}catch(e){}}
  horn(){this.tone(415,.55,'square',.08);this.tone(523,.55,'square',.08)}
  thud(){this.tone(110,.3,'sine',.4,0,35)}
  coin(){this.tone(988,.08,'square',.06);this.tone(1319,.2,'square',.06,.08)}
  flash(){this.tone(2200,.12,'triangle',.08)}
- mute(){this.muted=!this.muted;if(this.m)this.m.gain.value=this.muted?0:.5;return this.muted}
+ unlock(){this.tone(660,.1,'square',.07);this.tone(880,.1,'square',.07,.1);this.tone(1320,.22,'square',.07,.2)}
+ mute(){this.muted=!this.muted;if(this.m)this.m.gain.value=this.muted?0:.55;return this.muted}
 }
 S.AudioEngine=AudioEngine;})(window.SS);

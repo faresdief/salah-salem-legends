@@ -188,7 +188,7 @@ body.rain #rainfx{display:block}
   </div>
   <div class="side">
    <p class="foot err" id="err" hidden></p>
-   <div class="card modes-card"><h2>نمط اللعب</h2><div class="seg" id="modes"><button class="mode on" data-m="race">سباق</button><button class="mode" data-m="trial">تجربة زمن</button></div><p class="foot" id="modeNote"></p></div>
+   <div class="card modes-card"><h2>نمط اللعب</h2><div class="seg" id="modes"><button class="mode on" data-m="race">سباق</button><button class="mode" data-m="trial">تجربة زمن</button><button class="mode" data-m="night">سباق ليلي</button></div><p class="foot" id="modeNote"></p></div>
    <div class="card"><h2>الأداء</h2><div id="stats"></div></div>
       <details class="card"><summary>المساعدات والتحكم</summary>
     <label class="sw"><span>ناقل يدوي (E / Q)</span><input type="checkbox" id="oMan"></label>
@@ -658,7 +658,7 @@ const {CARS,Vehicle,Track,TRACK_PTS,wrap,clamp:cl}=S,$=id=>document.getElementBy
 const KM={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',Space:'hb'};
 const ATM=['morning','fog','rain','night'],ATN={morning:'صباح',fog:'ضباب',rain:'مطر',night:'ليل'},RPAL=[0xe63946,0xf4a300,0x2ec4b6,0x9b5de5,0x00a8e8,0xff6f91],PAL=[0x2f4a6b,0x8a1f1f,0x3d5a3a,0x6b6f75,0x1e1e1e,0xb8b8b8];
 const STATS=[['top','السرعة القصوى'],['acc','التسارع'],['hnd','التحكم'],['mass','الثبات'],['drift','الانزلاق']];
-const NOTE={race:'3 لفات ضد 5 منافسين. اكسب فلوس من مركزك ومن الدرفت والتجاوزات القريبة عشان تفتح عربيات جديدة.',trial:'3 لفات لوحدك على الحلبة والهدف أسرع لفة. بتسابق شبح أسرع لفة مسجلة ليك.'};
+const NOTE={night:'سباق 3 لفات بالليل بالنور العالي. المكافأة أكتر 50%.',race:'3 لفات ضد 5 منافسين. اكسب فلوس من مركزك ومن الدرفت والتجاوزات القريبة عشان تفتح عربيات جديدة.',trial:'3 لفات لوحدك على الحلبة والهدف أسرع لفة. بتسابق شبح أسرع لفة مسجلة ليك.'};
 const PRICE={verna:0,taxi:450,fiat:950,micro:1500},REWARD=[120,90,70,50,35,25];
 const fmt=t=>{if(t==null||!isFinite(t))return '--:--.-';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(1)};
 class Game{
@@ -684,7 +684,7 @@ class Game{
   for(const[id,k]of OPT){const e=$(id);e.checked=!!this.opt[k];e.onchange=()=>{this.opt[k]=e.checked;try{localStorage.setItem('ss3d_opt',JSON.stringify(this.opt))}catch(x){}
    if(k==='tilt'&&e.checked)this.enableTilt();if(this.pl)this.pl.opt=this.opt;this.shiftUi()}}
   $('pr').onclick=()=>this.pick(this.sel-1);$('nx').onclick=()=>this.pick(this.sel+1);
-  A('#modes .mode',b=>b.onclick=()=>{this.mode=b.dataset.m;$('modeNote').textContent=NOTE[this.mode];A('#modes .mode',x=>x.classList.toggle('on',x===b))});
+  A('#modes .mode',b=>b.onclick=()=>{const m=b.dataset.m;this.night=m==='night';this.mode=this.night?'race':m;$('modeNote').textContent=this.night?NOTE.night:NOTE[this.mode];A('#modes .mode',x=>x.classList.toggle('on',x===b))});
   A('#tabs button',b=>b.onclick=()=>{A('#tabs button',x=>x.classList.toggle('on',x===b));$('tRace').hidden=b.dataset.t!=='tRace';$('tLobby').hidden=b.dataset.t!=='tLobby'});
   $('buy').onclick=()=>this.buy();$('go').onclick=()=>this.start();this.initPaint();this.initWheel();if($('share'))$('share').onclick=()=>this.share();this.misRender();$('again').onclick=()=>this.start();$('restart').onclick=()=>this.start();$('resume').onclick=()=>this.resume();$('toMenu').onclick=()=>this.toMenu();$('toMenu2').onclick=()=>this.toMenu();
   $('bPause').onclick=()=>this.pause();$('bMute').onclick=()=>this.toggleM();$('bLight').onclick=()=>{this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl)};$('atm').onclick=()=>this.setAtm(1)}
@@ -705,7 +705,7 @@ class Game{
  set(id,v){if(this.txt[id]!==v){this.txt[id]=v;$(id).textContent=v}}
  popup(t){const b=$('pops');if(b.children.length>2)b.firstChild.remove();const d=document.createElement('div');d.className='pop';d.textContent=t;b.appendChild(d);setTimeout(()=>d.remove(),1800)}
  place(v,s,d){const tk=this.tk,i=Math.floor(s/tk.ds)%tk.N,p=tk.P[i],l=tk.Lf[i];v.x=p.x+l.x*d;v.z=p.z+l.z*d;v.h=tk.H[i]}
- start(){if(!this.world)return;if(!this.own[CARS[this.sel].id]){this.popup('العربية مقفولة، افتحها الأول');return}
+ start(){if(!this.world)return;if(this.night&&this.atm!=='night'){this.atm='night';this.setAtm(0)}if(!this.own[CARS[this.sel].id]){this.popup('العربية مقفولة، افتحها الأول');return}
  this.audio.init();const w=this.world,tk=this.tk,d=CARS[this.sel],race=this.mode==='race';
   if(this.itm)for(const o of this.itm)w.scene.remove(o.m);this.itm=[];this.nit=0;this.oil=0;for(const a of this.ai)w.scene.remove(a.car.g);if(this.pcar)w.scene.remove(this.pcar.g);this.ai=[];
   this.pl=new Vehicle(d);this.pl.opt=this.opt;if(this.fx)this.fx.skid.clear();this.fc=-150;this.pcar=S.makeCar(d,true);w.scene.add(this.pcar.g);const ps=race?3:0;this.place(this.pl,tk.len-12-ps*9,ps%2?3.4:-3.4);
@@ -797,7 +797,7 @@ class Game{
   if(this.state==='COUNT'){const c=Math.ceil(this.cd);if(c>0)this.set('count',String(c))}
   if(this.state==='FIN'){this.fin-=dt;if(this.fin<=0)this.finish()}}
  finish(){this.state='OVER';const d=this.pl.d;let rec=false,saved=null;try{const o=JSON.parse(localStorage.getItem('ss3d_best')||'{}');saved=o[d.id]!=null?o[d.id]:null;if(this.best!=null&&(saved==null||this.best<saved)){o[d.id]=this.best;saved=this.best;rec=true;localStorage.setItem('ss3d_best',JSON.stringify(o))}}catch(e){}
-  const race=this.mode==='race';let earn=race?(REWARD[this.finPos-1]||25):(rec?100:40);earn+=Math.min(60,Math.floor(this.drift/60));
+  const race=this.mode==='race';let earn=race?(REWARD[this.finPos-1]||25):(rec?100:40);earn+=Math.min(60,Math.floor(this.drift/60));if(this.night&&race)earn=Math.round(earn*1.5);
  this.coins+=earn;this.saveCoins();this.garage();this.misAdd('finish',1);if(race&&this.finPos===1)this.misAdd('win',1);this.misAdd('drift',Math.floor(this.drift));this.misAdd('speed',Math.round(this.maxV));this.lastShare={race,pos:this.finPos,tot:this.tot,best:this.best,v:Math.round(this.maxV)};this.misRender();$('oCoins').textContent='+'+earn+' جنيه';
  $('oS').textContent=race?this.finPos+'/'+this.tot:fmt(this.finT);$('oNew').hidden=!rec;$('oL').textContent=race?'المركز النهائي':'الزمن الكلي';$('oD').textContent=fmt(this.finT);$('oN').textContent=fmt(this.best);$('oC').textContent=Math.round(this.maxV)+' كم/س';$('oT').textContent=Math.round(this.pl.dmg)+'%';$('oH').textContent=fmt(saved);
   $('hud').hidden=true;$('touch').hidden=true;$('over').hidden=false;this.audio.update(0,false,false)}

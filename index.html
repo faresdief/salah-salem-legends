@@ -230,7 +230,7 @@ const CARS=[
 {id:'verna',murr:1.12,name:'هيونداي فيرنا GLS',col:0x9da1a6,shape:'sedan',len:4.26,wid:1.68,m:1180,L:2.44,wf:0.59,h:.55,cda:0.66,mu:1.05,T:144,pk:4500,rl:6500,gr:[3.54,2.05,1.39,1.03,.82],fd:4.19,Rw:0.295,rwd:0,bf:12,br:13,bk:10.2,vt:53,aa:3.1,top:.7,acc:.9,hnd:.85,mass:.5,drift:.5},
 {id:'taxi',murr:1.1,name:'تاكسي القاهرة',col:0x15171a,cab:0xe8e8e8,shape:'sedan',len:4.26,wid:1.68,m:1120,L:2.44,wf:.57,h:.56,cda:.7,mu:.97,T:125,pk:4000,rl:6000,gr:[3.6,2,1.4,1,.8],fd:4.3,Rw:0.29,rwd:1,bf:12,br:13,bk:9.8,vt:48,aa:2.8,top:.75,acc:.75,hnd:1,mass:.55,drift:.6},
 {id:'micro',murr:1.12,name:'ميكروباص أبيض',col:0xeeeeee,shape:'van',len:4.695,wid:1.695,m:1850,L:2.57,wf:.52,h:.85,cda:1.25,mu:.9,T:210,pk:2800,rl:4600,gr:[4.3,2.4,1.5,1,.8],fd:4.1,Rw:0.33,rwd:1,bf:11,br:12,bk:9.2,vt:42,aa:2.4,top:.6,acc:.55,hnd:.5,mass:1,drift:.3},
-{id:'fiat',murr:0.98,name:'فيات 128 / شاهين',col:0xd9531e,shape:'boxy',len:4.264,wid:1.65,m:900,L:2.49,wf:.52,h:.5,cda:.62,mu:1.1,T:155,pk:5200,rl:7000,gr:[3.5,2.2,1.5,1.1,.9],fd:4.1,Rw:0.29,rwd:1,bf:13,br:11.5,bk:10.6,vt:61,aa:3.8,top:1,acc:.7,hnd:.65,mass:.3,drift:1}];
+{id:'fiat',murr:1.1,name:'فيات 128 / شاهين',col:0xd9531e,shape:'boxy',len:4.264,wid:1.65,m:900,L:2.49,wf:.52,h:.5,cda:.62,mu:1.1,T:155,pk:5200,rl:7000,gr:[3.5,2.2,1.5,1.1,.9],fd:4.1,Rw:0.29,rwd:1,bf:13,br:11.5,bk:10.6,vt:61,aa:3.8,top:1,acc:.7,hnd:.65,mass:.3,drift:1}];
 class Vehicle{
  constructor(d){this.d=d;this.opt={man:false,abs:true,tcs:true,sa:true};this.sreq=0;this.reset(0,0,0)}
  shift(dir){this.sreq=dir}
@@ -240,7 +240,7 @@ class Vehicle{
  get speed(){return Math.hypot(this.vx,this.vy)}
  step(dt,i){const d=this.d,m=d.m,L=d.L,b=d.wf*L,a=L-b,sp=Math.abs(this.vx),Iz=m*a*b*1.1;
   const O=this.opt,sa=O.sa?-cl(this.vy/Math.max(sp,6)*1.3,-.3,.3):0,stIn=cl(i.steer+sa,-1,1),sr=(Math.abs(stIn)<Math.abs(this.si)?40:30)*dt;this.si+=cl(stIn-this.si,-sr,sr);
-  const kk=1.25+2.5*cl((sp-24)/14,0,1)**2;this.dl=-this.si*Math.min(.95,kk*L*d.mu*this.grip*G/Math.max(sp*sp,5));
+  const kk=1.25+.9*cl((sp-12)/16,0,1)+4.5*cl((sp-34)/10,0,1)**2;this.dl=-this.si*Math.min(.95,kk*L*d.mu*this.grip*G/Math.max(sp*sp,5));
   this.thr+=cl(i.thr-this.thr,-10*dt,9*dt);this.brk+=cl(i.brk-this.brk,-12*dt,10*dt);
   const rv=i.brk>.1&&this.vx<1&&i.thr<.05;
   let g=this.gear,wr=sp/d.Rw,rpm=wr*d.gr[g]*d.fd*9.5493;
@@ -254,7 +254,7 @@ class Vehicle{
   const Fhb=i.hb?Math.min(.5*m*G,m*sp/dt):0,Fbf=Fb*.62*dir,Fbr=(Fb*.38+Fhb)*dir;
   const wt=m*this.ax*d.h/L,Nf=Math.max(.15*m*G*d.wf,m*G*d.wf-wt),Nr=Math.max(.15*m*G*(1-d.wf),m*G*(1-d.wf)+wt);
   const vxs=Math.max(sp,2.5),af=Math.atan2(this.vy+a*this.r,vxs)-this.dl,ar=Math.atan2(this.vy-b*this.r,vxs);
-  const muf=d.mu*this.grip*1.2;let tf=muf*Nf,tr=muf*(d.murr||1)*Nr;const lock=!O.abs&&this.brk>.8&&sp>3;this.lock=lock;if(lock){tf*=.85;tr*=.55}
+  const muf=d.mu*this.grip*1.2*(1+.3*cl((sp-12)/30,0,1));let tf=muf*Nf,tr=muf*(d.murr||1)*Nr;const lock=!O.abs&&this.brk>.8&&sp>3;this.lock=lock;if(lock){tf*=.85;tr*=.55}
   if(O.tcs&&Fd>0){const cap=.88*(d.rwd?tr:tf);if(Fd>cap)Fd=cap}
   let Fyf=-tf*Math.sin(1.5*Math.atan(d.bf*af)),Fyr=-tr*Math.sin(1.5*Math.atan(d.br*ar));
   let Fxf=(d.rwd?0:Fd)-Fbf,Fxr=(d.rwd?Fd:0)-Fbr,q=Math.hypot(Fxf,Fyf);if(q>tf){Fxf*=tf/q;Fyf*=tf/q}q=Math.hypot(Fxr,Fyr);if(q>tr){Fxr*=tr/q;Fyr*=tr/q}
@@ -764,9 +764,9 @@ class Game{
 
  initWheel(){const w=$('wheel');if(!w)return;this.wv=0;this.wr=0;this.wd=false;let a0=0,sx=0,id=-1;const ang=e=>{const b=w.getBoundingClientRect();return Math.atan2(e.clientY-(b.top+b.height/2),e.clientX-(b.left+b.width/2))};
   w.addEventListener('pointerdown',e=>{e.preventDefault();if(this.wd)return;this.audio.init();this.wd=true;this.wraw=0;id=e.pointerId;a0=ang(e);{const b=w.getBoundingClientRect();this.wr0=Math.hypot(e.clientX-(b.left+b.width/2),e.clientY-(b.top+b.height/2))}sx=e.clientX;try{w.setPointerCapture(e.pointerId)}catch(x){}});
-  w.addEventListener('pointermove',e=>{if(!this.wd||e.pointerId!==id)return;let d=ang(e)-a0;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;const b=w.getBoundingClientRect(),rr=Math.hypot(e.clientX-(b.left+b.width/2),e.clientY-(b.top+b.height/2)),v1=d*Math.min(1,(this.wr0||60)/55)/1.4,v2=(e.clientX-sx)/110,v=(rr<35||Math.abs(d)>1.6)?v2:(Math.abs(v1)>Math.abs(v2)?v1:v2);this.wraw=cl(v,-1,1)});
+  w.addEventListener('pointermove',e=>{if(!this.wd||e.pointerId!==id)return;let d=ang(e)-a0;while(d>Math.PI)d-=6.2832;while(d<-Math.PI)d+=6.2832;const b=w.getBoundingClientRect(),rr=Math.hypot(e.clientX-(b.left+b.width/2),e.clientY-(b.top+b.height/2)),v1=d*Math.min(1,(this.wr0||60)/55)/1.3,v2=(e.clientX-sx)/100,v=(rr<35||Math.abs(d)>1.6)?v2:(Math.abs(v1)>Math.abs(v2)?v1:v2);this.wraw=cl(v,-1,1)});
   const up=e=>{if(e.pointerId===id||e.pointerId===undefined)this.wd=false};['pointerup','pointercancel','lostpointercapture'].forEach(n=>w.addEventListener(n,up));w.addEventListener('contextmenu',e=>e.preventDefault())}
- wheelCurve(v){const s=v<0?-1:1,u=Math.max(0,Math.abs(v)-.05)/.95;return s*(.75*Math.pow(u,1.8)+.25*u)}
+ wheelCurve(v){const s=v<0?-1:1,u=Math.max(0,Math.abs(v)-.04)/.96;return s*(.45*Math.pow(u,1.6)+.55*u)}
  wheelStep(dt){if(!this.wheelEl)this.wheelEl=document.getElementById('wsvg');if(!this.wheelEl||this.wv===undefined)return;if(this.wd){const tg=this.wheelCurve(this.wraw||0);this.wv+=(tg-this.wv)*(1-Math.exp(-14*dt));this.wr=this.wv*1.3}else if(this.wv!==0){this.wraw=0;this.wv*=Math.exp(-9*dt);if(Math.abs(this.wv)<.01)this.wv=0;this.wr=this.wv*1.3}const t='rotate('+(this.wr*57.3).toFixed(1)+'deg)';if(t!==this.wt){this.wt=t;this.wheelEl.style.transform=t}}
  initPaint(){const V=[0x9da1a6,0x0d0d0f,0xeeeeee,0x8a1f1f],b=$('paint');if(!b)return;let i=0;try{i=+localStorage.getItem('ss3d_vcol')||0}catch(e){}CARS[0].col=V[i%V.length];b.onclick=()=>{i=(i+1)%V.length;CARS[0].col=V[i];try{localStorage.setItem('ss3d_vcol',String(i))}catch(e){}this.pick(this.sel)};if(this.sel===0)this.pick(0)}
  onLap(){if(this.lap===1){this.lapStart=this.raceT;this.rec=[];this.recT=0;this.popup('اللفة 1 من '+LAPS);return}

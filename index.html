@@ -670,14 +670,14 @@ class Game{
  place(v,s,d){const tk=this.tk,i=Math.floor(s/tk.ds)%tk.N,p=tk.P[i],l=tk.Lf[i];v.x=p.x+l.x*d;v.z=p.z+l.z*d;v.h=tk.H[i]}
  start(){if(!this.world)return;if(!this.own[CARS[this.sel].id]){this.popup('العربية مقفولة، افتحها الأول');return}
  this.audio.init();const w=this.world,tk=this.tk,d=CARS[this.sel],race=this.mode==='race';
-  for(const a of this.ai)w.scene.remove(a.car.g);if(this.pcar)w.scene.remove(this.pcar.g);this.ai=[];
+  if(this.itm)for(const o of this.itm)w.scene.remove(o.m);this.itm=[];this.nit=0;this.oil=0;for(const a of this.ai)w.scene.remove(a.car.g);if(this.pcar)w.scene.remove(this.pcar.g);this.ai=[];
   this.pl=new Vehicle(d);this.pl.opt=this.opt;if(this.fx)this.fx.skid.clear();this.fc=-150;this.pcar=S.makeCar(d,true);w.scene.add(this.pcar.g);const ps=race?3:0;this.place(this.pl,tk.len-12-ps*9,ps%2?3.4:-3.4);
   if(race){let sl=0;const lanes=[-3.4,3.4];for(let k=0;k<NAI+1;k++){if(k===ps)continue;const base=CARS[(k+this.sel+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=RPAL[k%RPAL.length];
    const key=base.id;this.cache[key]=this.cache[key]||tk.profile(base.vt*.98,base.mu*.95,base.aa*1.4,8);
    const a={def,car:S.makeCar(def,false),prof:this.cache[key],s:tk.len-12-k*9,d:lanes[k%2],lane:lanes[k%2]*(.4+Math.random()*.8),v:0,lap:0,skill:.86+Math.random()*.12,veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};
    this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}
   for(let k=0;k<6;k++){const base=CARS[(k*3+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=PAL[k%PAL.length];const tv=14+Math.random()*6,ln=(k%2?1:-1)*3.4+(Math.random()-.5)*1.6,s0=150+(tk.len-330)*(k+.5)/6;
-   const a={tr:1,tv,def,car:S.makeCar(def,false),prof:null,s:s0,d:ln,lane:ln,v:tv,lap:0,skill:1,veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}}this.pa={s:0,d:0,v:0};this.all=this.ai.concat([this.pa]);
+   const a={tr:1,tv,def,car:S.makeCar(def,false),prof:null,s:s0,d:ln,lane:ln,v:tv,lap:0,skill:1,veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}}this.mkItems();this.pa={s:0,d:0,v:0};this.all=this.ai.concat([this.pa]);
   this.loc=tk.locate(this.pl.x,this.pl.z);this.ps=this.loc.sf*tk.ds;this.lap=0;this.lapStart=0;this.best=null;this.last3=null;this.fin=0;this.pos=1;this.maxV=0;this.raceT=0;this.cd=3;this.tot=1;this.state='COUNT';this.paused=false;this.acc=0;this.bump=0;this.ch=this.pl.h;this.keys={};
   this.maxV=0;this.drift=0;this.driftNext=100;this.nearT=0;this.rec=[];this.recT=0;this.mapP=null;this.setGhost();
  Object.assign(this.pa,{s:this.ps,d:this.loc.d,v:0});$('menu').hidden=true;$('over').hidden=true;$('pause').hidden=true;$('hud').hidden=false;w.measure();w.compile();this.shiftUi();$('touch').hidden=!this.coarse;$('bLight').classList.toggle('on',this.hl);$('count').hidden=false;this.txt={}}
@@ -703,7 +703,7 @@ class Game{
  sim(h){const p=this.pl,tk=this.tk,k=this.keys,I=this.inp,len=tk.len;
   if(this.state==='COUNT'){this.cd-=h;p.thr+=((k.up?1:0)-p.thr)*h*5;p.rpm=900+p.thr*3600;p.gear=0;if(this.cd<=0){this.state='RACING';this.raceT=0;$('count').textContent='انطلق';setTimeout(()=>{if(this.state!=='MENU')$('count').hidden=true},900)}}
   else{I.steer=(k.right?1:0)-(k.left?1:0);if(this.opt.tilt&&this.coarse)I.steer=cl(I.steer+(this.opt.inv?-1:1)*this.tilt/20,-1,1);I.thr=k.up?1:0;I.brk=k.down?1:0;I.hb=k.hb?1:0;if(this.state==='FIN'){I.steer=0;I.thr=0;I.brk=.5;I.hb=0}
-   const ad=Math.abs(this.loc.d);p.grip=ad<7.5?1:ad<8.4?.96:.72;p.step(h,I);this.raceT+=h;
+   const ad=Math.abs(this.loc.d);p.grip=ad<7.5?1:ad<8.4?.96:.72;if(this.oil>0){this.oil-=h;p.grip*=.42}if(this.nit>0){this.nit-=h;if(p.vx>0&&p.vx<p.d.vt*1.12)p.vx+=13*h}p.step(h,I);this.items(h);this.raceT+=h;
    this.loc=tk.locate(p.x,p.z,this.loc.i);this.collide();const s=this.loc.sf*tk.ds;
    if(this.ps>len*.75&&s<len*.25){this.lap++;this.onLap()}else if(this.ps<len*.25&&s>len*.75)this.lap--;this.ps=s;this.pa.s=s;this.pa.d=this.loc.d;this.pa.v=p.speed;this.maxV=Math.max(this.maxV,p.vx*3.6);
  if(this.mode==='trial'){this.recT-=h;if(this.recT<=0){this.recT=.1;this.rec.push([+(this.raceT-this.lapStart).toFixed(2),+p.x.toFixed(2),+p.z.toFixed(2),+p.h.toFixed(3)])}}
@@ -716,6 +716,14 @@ class Game{
  misAdd(k,v){const df=this.misDefs().find(x=>x.k===k);if(!df)return;const m=this.misLoad();m.p[k]=df.max?Math.max(m.p[k]||0,v):(m.p[k]||0)+v;let got=0;if(m.p[k]>=df.n&&!m.ok[k]){m.ok[k]=1;got=df.r}try{localStorage.setItem('ss3d_mis',JSON.stringify(m))}catch(e){}if(got){this.coins+=got;this.saveCoins();this.garage();this.popup('مهمة تمت: '+df.t+' +'+got);this.audio.coin()}this.misRender()}
  misRender(){const m=this.misLoad(),h=this.misDefs().map(d=>{const p=Math.min(d.n,m.p[d.k]||0),ok=m.ok[d.k];return '<div class="r"><span>'+(ok?'✔ ':'')+d.t+'</span><b>'+(ok?'تمت':p+'/'+d.n+' · '+d.r+' جنيه')+'</b></div>'}).join('');for(const id of['misList','oMis']){const e=$(id);if(e)e.innerHTML=h}}
  share(){const L=this.lastShare||{},u='https://faresdief.github.io/salah-salem-legends/',t=L.race?'خلصت سباق في صلاح سالم: المركز '+L.pos+'/'+L.tot+' وأعلى سرعة '+L.v+' كم/س. هتغلبني؟':'عملت أسرع لفة '+fmt(L.best)+' في صلاح سالم. هتغلبني؟';if(navigator.share)navigator.share({title:'صلاح سالم: سباق الأساطير',text:t,url:u}).catch(()=>{});else{const x=t+' '+u;if(navigator.clipboard)navigator.clipboard.writeText(x).then(()=>this.popup('اتنسخت النتيجة'),()=>{});else this.popup(x)}}
+
+ mkItems(){const T=window.THREE,w=this.world,tk=this.tk,N=tk.N;this.itm=[];if(this.mode!=='race'&&this.mode!=='trial')return;
+  const nm=new T.MeshStandardMaterial({color:0xff8a1f,emissive:0xff6a00,emissiveIntensity:1.4}),om=new T.MeshStandardMaterial({color:0x0a0a0c,roughness:.15,metalness:.6}),ng=new T.CylinderGeometry(.7,.7,.25,16),og=new T.CylinderGeometry(1.7,1.7,.03,20);
+  const add=(kind,fr,ln)=>{const i=Math.floor(fr*N)%N,p=tk.P[i],l=tk.Lf[i],m=new T.Mesh(kind==='n'?ng:og,kind==='n'?nm:om);m.position.set(p.x+l.x*ln,kind==='n'?.9:.035,p.z+l.z*ln);w.scene.add(m);this.itm.push({k:kind,m,x:m.position.x,z:m.position.z,t:0,fr,ln})};
+  for(let k=0;k<6;k++)add('n',.1+k*.15,(k%2?1:-1)*(1.5+Math.random()*3));
+  for(let k=0;k<4;k++)add('o',.18+k*.22+Math.random()*.05,(Math.random()<.5?-1:1)*(1+Math.random()*3.5))}
+ items(h){if(!this.itm||this.state==='COUNT')return;const p=this.pl;for(const o of this.itm){if(o.k==='n'){o.m.rotation.y+=h*3;if(o.t>0){o.t-=h;o.m.visible=o.t<=0;continue}}
+  if(Math.hypot(p.x-o.x,p.z-o.z)<2.1){if(o.k==='n'){o.t=15;o.m.visible=false;this.nit=2.6;this.popup('نيترو!');this.audio.coin()}else if(this.oil<=0&&this.state==='RACING'){this.oil=1.4;this.popup('بقعة زيت!');this.hit(2)}}}}
  onLap(){if(this.lap===1){this.lapStart=this.raceT;this.rec=[];this.recT=0;this.popup('اللفة 1 من '+LAPS);return}
   const lt=this.raceT-this.lapStart;this.lapStart=this.raceT;this.last3=lt;
  if(this.mode==='trial'&&(this.best==null||lt<=this.best)&&this.rec.length>10&&this.rec.length<1500){try{localStorage.setItem('ss3d_ghost_'+CARS[this.sel].id,JSON.stringify({s:this.rec}))}catch(e){}}

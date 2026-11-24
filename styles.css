@@ -93,3 +93,7 @@ ul{list-style:none;padding:0}li{display:flex;justify-content:space-between;paddi
 .sw input:checked{background:var(--gold)}.sw input:checked::after{transform:translateX(20px)}
 .tiltrow{display:none}.touch .tiltrow{display:flex}
 #touch .sh{width:44px;height:44px;font-size:13px;flex-direction:row}#touch .sh svg{width:16px;height:16px}
+#lines{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:1}
+#map{position:fixed;z-index:2;bottom:calc(var(--sab) + 14px);left:14px;width:122px;height:122px;border-radius:18px;padding:6px}
+.coinp{color:var(--gold);align-items:center}.coinp small{color:var(--gold)}
+#buy{width:auto;display:inline-block;height:auto;padding:8px 18px;margin-top:8px;font-size:14px}

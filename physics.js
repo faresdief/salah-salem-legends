@@ -1,10 +1,10 @@
 (function(S){'use strict';
 const G=9.81,RHO=1.2,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),wrap=a=>{while(a>Math.PI)a-=6.283185;while(a<-Math.PI)a+=6.283185;return a};
 const CARS=[
-{id:'verna',murr:1.12,name:'هيونداي فيرنا GLS',col:0x7a8088,shape:'sedan',len:4.26,wid:1.68,m:1180,L:2.44,wf:0.59,h:.55,cda:0.66,mu:1.05,T:144,pk:4500,rl:6500,gr:[3.54,2.05,1.39,1.03,.82],fd:4.19,Rw:0.295,rwd:0,bf:12,br:13,bk:9.4,vt:46,aa:2.7,top:.7,acc:.9,hnd:.85,mass:.5,drift:.5},
-{id:'taxi',murr:1.1,name:'تاكسي القاهرة',col:0x15171a,cab:0xe8e8e8,shape:'sedan',len:4.26,wid:1.68,m:1120,L:2.44,wf:.57,h:.56,cda:.7,mu:.97,T:125,pk:4000,rl:6000,gr:[3.6,2,1.4,1,.8],fd:4.3,Rw:0.29,rwd:1,bf:12,br:13,bk:9,vt:42,aa:2.4,top:.75,acc:.75,hnd:1,mass:.55,drift:.6},
-{id:'micro',murr:1.12,name:'ميكروباص أبيض',col:0xeeeeee,shape:'van',len:4.695,wid:1.695,m:1850,L:2.57,wf:.52,h:.85,cda:1.25,mu:.9,T:210,pk:2800,rl:4600,gr:[4.3,2.4,1.5,1,.8],fd:4.1,Rw:0.33,rwd:1,bf:11,br:12,bk:8.4,vt:37,aa:2.1,top:.6,acc:.55,hnd:.5,mass:1,drift:.3},
-{id:'fiat',murr:0.98,name:'فيات 128 / شاهين',col:0xd9531e,shape:'boxy',len:4.264,wid:1.65,m:900,L:2.49,wf:.52,h:.5,cda:.62,mu:1.1,T:155,pk:5200,rl:7000,gr:[3.5,2.2,1.5,1.1,.9],fd:4.1,Rw:0.29,rwd:1,bf:13,br:11.5,bk:9.8,vt:54,aa:3.4,top:1,acc:.7,hnd:.65,mass:.3,drift:1}];
+{id:'verna',murr:1.12,name:'هيونداي فيرنا GLS',col:0x7a8088,shape:'sedan',len:4.26,wid:1.68,m:1180,L:2.44,wf:0.59,h:.55,cda:0.66,mu:1.05,T:144,pk:4500,rl:6500,gr:[3.54,2.05,1.39,1.03,.82],fd:4.19,Rw:0.295,rwd:0,bf:12,br:13,bk:10.2,vt:53,aa:3.1,top:.7,acc:.9,hnd:.85,mass:.5,drift:.5},
+{id:'taxi',murr:1.1,name:'تاكسي القاهرة',col:0x15171a,cab:0xe8e8e8,shape:'sedan',len:4.26,wid:1.68,m:1120,L:2.44,wf:.57,h:.56,cda:.7,mu:.97,T:125,pk:4000,rl:6000,gr:[3.6,2,1.4,1,.8],fd:4.3,Rw:0.29,rwd:1,bf:12,br:13,bk:9.8,vt:48,aa:2.8,top:.75,acc:.75,hnd:1,mass:.55,drift:.6},
+{id:'micro',murr:1.12,name:'ميكروباص أبيض',col:0xeeeeee,shape:'van',len:4.695,wid:1.695,m:1850,L:2.57,wf:.52,h:.85,cda:1.25,mu:.9,T:210,pk:2800,rl:4600,gr:[4.3,2.4,1.5,1,.8],fd:4.1,Rw:0.33,rwd:1,bf:11,br:12,bk:9.2,vt:42,aa:2.4,top:.6,acc:.55,hnd:.5,mass:1,drift:.3},
+{id:'fiat',murr:0.98,name:'فيات 128 / شاهين',col:0xd9531e,shape:'boxy',len:4.264,wid:1.65,m:900,L:2.49,wf:.52,h:.5,cda:.62,mu:1.1,T:155,pk:5200,rl:7000,gr:[3.5,2.2,1.5,1.1,.9],fd:4.1,Rw:0.29,rwd:1,bf:13,br:11.5,bk:10.6,vt:61,aa:3.8,top:1,acc:.7,hnd:.65,mass:.3,drift:1}];
 class Vehicle{
  constructor(d){this.d=d;this.opt={man:false,abs:true,tcs:true,sa:true};this.sreq=0;this.reset(0,0,0)}
  shift(dir){this.sreq=dir}
@@ -13,16 +13,16 @@ class Vehicle{
  setWv(a,b){const s=Math.sin(this.h),c=Math.cos(this.h);this.vx=a*s+b*c;this.vy=a*c-b*s}
  get speed(){return Math.hypot(this.vx,this.vy)}
  step(dt,i){const d=this.d,m=d.m,L=d.L,b=d.wf*L,a=L-b,sp=Math.abs(this.vx),Iz=m*a*b*1.1;
-  const O=this.opt,sa=O.sa?-cl(this.vy/Math.max(sp,6)*1.6,-.35,.35):0,stIn=cl(i.steer+sa,-1,1),sr=(Math.abs(stIn)<Math.abs(this.si)?7:4.5)*dt;this.si+=cl(stIn-this.si,-sr,sr);
-  this.dl=-this.si*Math.min(.6,1.35*L*d.mu*this.grip*G/Math.max(sp*sp,6));
-  this.thr+=cl(i.thr-this.thr,-8*dt,5*dt);this.brk+=cl(i.brk-this.brk,-10*dt,8*dt);
+  const O=this.opt,sa=O.sa?-cl(this.vy/Math.max(sp,6)*1.3,-.3,.3):0,stIn=cl(i.steer+sa,-1,1),sr=(Math.abs(stIn)<Math.abs(this.si)?13:9)*dt;this.si+=cl(stIn-this.si,-sr,sr);
+  this.dl=-this.si*Math.min(.62,1.5*L*d.mu*this.grip*G/Math.max(sp*sp,5));
+  this.thr+=cl(i.thr-this.thr,-10*dt,9*dt);this.brk+=cl(i.brk-this.brk,-12*dt,10*dt);
   const rv=i.brk>.1&&this.vx<1&&i.thr<.05;
   let g=this.gear,wr=sp/d.Rw,rpm=wr*d.gr[g]*d.fd*9.5493;
   if(this.sh>0)this.sh-=dt;else if(O.man){if(this.sreq>0&&g<d.gr.length-1){this.gear++;this.sh=.15}else if(this.sreq<0&&g>0){this.gear--;this.sh=.15}this.sreq=0}else if(rpm>d.rl*.94&&g<d.gr.length-1){this.gear++;this.sh=.28}else if(g>0&&wr*d.gr[g-1]*d.fd*9.5493<d.rl*.72){this.gear--;this.sh=.2}
   g=this.gear;rpm=Math.max(wr*d.gr[g]*d.fd*9.5493,900+this.thr*(sp<3?2600:0));this.rpm+=(rpm-this.rpm)*Math.min(1,dt*12);rpm=this.rpm;
   const x=(rpm-d.pk)/(rpm<d.pk?d.pk-900:d.rl-d.pk);let T=d.T*Math.max(.3,1-.55*x*x)*(1-.35*this.dmg/100);if(rpm>=d.rl)T=0;
-  let Fd=this.sh>0?0:T*this.thr*d.gr[g]*d.fd*.85/d.Rw;
-  if(!rv&&this.thr<.05&&this.sh<=0&&sp>2)Fd=-d.T*.16*d.gr[g]*d.fd*.85/d.Rw*Math.min(1,rpm/d.rl);
+  let Fd=this.sh>0?0:T*this.thr*d.gr[g]*d.fd*.85/d.Rw*1.22;
+  if(!rv&&this.thr<.05&&this.sh<=0&&sp>2)Fd=-d.T*.16*d.gr[g]*d.fd*.85/d.Rw*Math.min(1,rpm/d.rl)*1.22;
   if(rv){Fd=this.vx>-6?-d.T*.5*d.gr[0]*d.fd*.85/d.Rw*i.brk:0}
   const dir=this.vx>=0?1:-1;let Fb=rv?0:this.brk*d.bk*m;Fb=Math.min(Fb,m*sp/dt);
   const Fhb=i.hb?Math.min(.5*m*G,m*sp/dt):0,Fbf=Fb*.62*dir,Fbr=(Fb*.38+Fhb)*dir;

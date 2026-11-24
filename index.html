@@ -201,13 +201,14 @@ details.card[open]>summary{margin-bottom:8px}
   <ul id="ll"></ul><button class="btn tint" id="lready">جاهز</button><p class="foot" id="ls">غير متصل بلوبي</p>
  </div>
 </div>
+<details class="card" id="misCard" open><summary>مهام اليوم</summary><div id="misList"></div></details>
 <div class="cta"><button class="btn primary" id="go">ابدأ السباق</button></div></section>
 <section id="pause" class="sheet" hidden><div class="card"><h3>إيقاف مؤقت</h3>
  <button class="btn primary" id="resume">كمّل السباق</button><button class="btn tint" id="restart">ابدأ من جديد</button><button class="btn tint" id="toMenu">القائمة الرئيسية</button></div></section>
 <section id="over" class="sheet" hidden><div class="card"><h3>انتهى السباق</h3>
  <small class="cen" id="oL">المركز النهائي</small><div class="big" id="oS">1/6</div><span class="tagn" id="oNew" hidden>رقم قياسي جديد</span>
  <div class="rows"><div class="r"><span>الزمن الكلي</span><b id="oD"></b></div><div class="r"><span>أسرع لفة</span><b id="oN"></b></div><div class="r"><span>أعلى سرعة</span><b id="oC"></b></div><div class="r"><span>الأضرار</span><b id="oT"></b></div><div class="r"><span>فلوس مكتسبة</span><b id="oCoins"></b></div><div class="r"><span>أفضل لفة مسجلة</span><b id="oH"></b></div></div>
- <button class="btn primary" id="again">العب تاني</button><button class="btn tint" id="toMenu2">القائمة الرئيسية</button></div></section>
+ <small class="cen">مهام اليوم</small><div class="rows" id="oMis"></div><button class="btn tint" id="share">شارك نتيجتك</button><button class="btn primary" id="again">العب تاني</button><button class="btn tint" id="toMenu2">القائمة الرئيسية</button></div></section>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(S){'use strict';
@@ -648,7 +649,7 @@ class Game{
   $('pr').onclick=()=>this.pick(this.sel-1);$('nx').onclick=()=>this.pick(this.sel+1);
   A('#modes .mode',b=>b.onclick=()=>{this.mode=b.dataset.m;$('modeNote').textContent=NOTE[this.mode];A('#modes .mode',x=>x.classList.toggle('on',x===b))});
   A('#tabs button',b=>b.onclick=()=>{A('#tabs button',x=>x.classList.toggle('on',x===b));$('tRace').hidden=b.dataset.t!=='tRace';$('tLobby').hidden=b.dataset.t!=='tLobby'});
-  $('buy').onclick=()=>this.buy();$('go').onclick=()=>this.start();$('again').onclick=()=>this.start();$('restart').onclick=()=>this.start();$('resume').onclick=()=>this.resume();$('toMenu').onclick=()=>this.toMenu();$('toMenu2').onclick=()=>this.toMenu();
+  $('buy').onclick=()=>this.buy();$('go').onclick=()=>this.start();if($('share'))$('share').onclick=()=>this.share();this.misRender();$('again').onclick=()=>this.start();$('restart').onclick=()=>this.start();$('resume').onclick=()=>this.resume();$('toMenu').onclick=()=>this.toMenu();$('toMenu2').onclick=()=>this.toMenu();
   $('bPause').onclick=()=>this.pause();$('bMute').onclick=()=>this.toggleM();$('bLight').onclick=()=>{this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl)};$('atm').onclick=()=>this.setAtm(1)}
  enableTilt(){const go=()=>{if(this.tiltOn)return;this.tiltOn=true;addEventListener('deviceorientation',e=>{const a=(screen.orientation&&screen.orientation.angle)||window.orientation||0;let t=a===0?e.gamma:a===90?e.beta:a===270||a===-90?-e.beta:-e.gamma;this.tilt=isFinite(t)?cl(t,-40,40):0})};
   try{if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function')DeviceOrientationEvent.requestPermission().then(r=>{if(r==='granted')go()}).catch(()=>{});else go()}catch(e){}}
@@ -708,6 +709,13 @@ class Game{
  if(this.mode==='trial'){this.recT-=h;if(this.recT<=0){this.recT=.1;this.rec.push([+(this.raceT-this.lapStart).toFixed(2),+p.x.toFixed(2),+p.z.toFixed(2),+p.h.toFixed(3)])}}
  if(p.slip>.22&&p.speed>9){this.drift+=p.slip*p.speed*h;if(this.drift>=this.driftNext){this.popup('درفت '+this.driftNext);this.audio.coin();this.driftNext*=2}}}
   if(this.state!=='COUNT')for(const a of this.ai)this.aiStep(a,h)}
+
+ misDay(){return Math.floor(Date.now()/864e5+1/12)}
+ misDefs(){const M=[{k:'finish',t:'خلّص سباقين',n:2,r:80},{k:'near',t:'5 تجاوزات قريبة',n:5,r:60},{k:'drift',t:'درفت 300 نقطة',n:300,r:70},{k:'speed',t:'وصّل 160 كم/س',n:160,r:50,max:1},{k:'over',t:'تجاوز 3 منافسين',n:3,r:60},{k:'win',t:'اكسب سباق',n:1,r:120}],d=this.misDay()%6;return[M[d],M[(d+2)%6],M[(d+4)%6]]}
+ misLoad(){let m=null;try{m=JSON.parse(localStorage.getItem('ss3d_mis')||'null')}catch(e){}const d=this.misDay();if(!m||m.day!==d||!m.p)m={day:d,p:{},ok:{}};return m}
+ misAdd(k,v){const df=this.misDefs().find(x=>x.k===k);if(!df)return;const m=this.misLoad();m.p[k]=df.max?Math.max(m.p[k]||0,v):(m.p[k]||0)+v;let got=0;if(m.p[k]>=df.n&&!m.ok[k]){m.ok[k]=1;got=df.r}try{localStorage.setItem('ss3d_mis',JSON.stringify(m))}catch(e){}if(got){this.coins+=got;this.saveCoins();this.garage();this.popup('مهمة تمت: '+df.t+' +'+got);this.audio.coin()}this.misRender()}
+ misRender(){const m=this.misLoad(),h=this.misDefs().map(d=>{const p=Math.min(d.n,m.p[d.k]||0),ok=m.ok[d.k];return '<div class="r"><span>'+(ok?'✔ ':'')+d.t+'</span><b>'+(ok?'تمت':p+'/'+d.n+' · '+d.r+' جنيه')+'</b></div>'}).join('');for(const id of['misList','oMis']){const e=$(id);if(e)e.innerHTML=h}}
+ share(){const L=this.lastShare||{},u='https://faresdief.github.io/salah-salem-legends/',t=L.race?'خلصت سباق في صلاح سالم: المركز '+L.pos+'/'+L.tot+' وأعلى سرعة '+L.v+' كم/س. هتغلبني؟':'عملت أسرع لفة '+fmt(L.best)+' في صلاح سالم. هتغلبني؟';if(navigator.share)navigator.share({title:'صلاح سالم: سباق الأساطير',text:t,url:u}).catch(()=>{});else{const x=t+' '+u;if(navigator.clipboard)navigator.clipboard.writeText(x).then(()=>this.popup('اتنسخت النتيجة'),()=>{});else this.popup(x)}}
  onLap(){if(this.lap===1){this.lapStart=this.raceT;this.rec=[];this.recT=0;this.popup('اللفة 1 من '+LAPS);return}
   const lt=this.raceT-this.lapStart;this.lapStart=this.raceT;this.last3=lt;
  if(this.mode==='trial'&&(this.best==null||lt<=this.best)&&this.rec.length>10&&this.rec.length<1500){try{localStorage.setItem('ss3d_ghost_'+CARS[this.sel].id,JSON.stringify({s:this.rec}))}catch(e){}}
@@ -721,7 +729,7 @@ class Game{
    for(const o1 of[-1.1,1.1])for(const o2 of[-1.1,1.1]){const px=p.x+Math.sin(p.h)*o1,pz=p.z+Math.cos(p.h)*o1,ax=v.x+Math.sin(v.h)*o2,az=v.z+Math.cos(v.h)*o2,ddx=px-ax,ddz=pz-az,dd=Math.hypot(ddx,ddz);
     if(dd<1.95&&dd>.001){tch=1;const nx=ddx/dd,nz=ddz/dd,ov=1.95-dd;p.x+=nx*ov*.7;p.z+=nz*ov*.7;const l=tk.Lf[Math.floor(a.s/tk.ds)%tk.N];a.d-=(nx*l.x+nz*l.z)*ov*.3;
      const wv=p.wv(),vr=(wv[0]-Math.sin(v.h)*a.v)*nx+(wv[1]-Math.cos(v.h)*a.v)*nz;if(vr<0){p.setWv(wv[0]-1.25*vr*nx,wv[1]-1.25*vr*nz);a.v*=1-cl(-vr*.015,0,.15);this.hit(-vr*.6,(px+ax)/2,(pz+az)/2)}}}
- if(!tch&&d2<8.5&&p.speed>18&&this.raceT-this.nearT>1.5&&this.state==='RACING'){this.nearT=this.raceT;this.addCoins(5,'تجاوز قريب +5')}}}
+ if(!tch&&d2<8.5&&p.speed>18&&this.raceT-this.nearT>1.5&&this.state==='RACING'){this.nearT=this.raceT;this.addCoins(5,'تجاوز قريب +5');this.misAdd('near',1)}}}
  aiStep(a,dt){const tk=this.tk,N=tk.N,len=tk.len,ds=tk.ds,i=Math.floor(a.s/ds)%N,j=(i+1)%N,f=(a.s/ds)%1;
   let cap=a.tr?a.tv:a.prof[(i+Math.floor(a.v*.9/ds)+1)%N]*a.skill*(this.ps!==undefined?(()=>{let q=this.ps-a.s;if(q<-len/2)q+=len;if(q>len/2)q-=len;return q>25?1.05:q<-25?.95:1})():1),tgt=a.lane;
   const all=this.all;let blk=null,bd=1e9;
@@ -732,12 +740,12 @@ class Game{
   a.s+=a.v*dt;if(a.s>=len){a.s-=len;a.lap++}
   const v=a.veh,p=tk.P[i],q=tk.P[j],l=tk.Lf[i],dh=wrap(tk.H[j]-tk.H[i]),ks=dh/ds;
   v.x=p.x+(q.x-p.x)*f+l.x*a.d;v.z=p.z+(q.z-p.z)*f+l.z*a.d;v.h=tk.H[i]+dh*f+Math.atan2((a.d-od)/dt,Math.max(a.v,3));v.vx=a.v;v.dl=Math.atan(a.def.L*ks);v.ay=a.v*a.v*ks;v.ax+=((a.v-pv)/dt-v.ax)*.1;v.brk=a.v<pv-.01?1:0}
- post(dt){const p=this.pl,tk=this.tk,len=tk.len,all=[{pl:1,pr:(this.lap-1)*len+this.ps}];for(const a of this.ai)if(!a.tr)all.push({pr:(a.lap-1)*len+a.s});all.sort((x,y)=>y.pr-x.pr);const np=all.findIndex(x=>x.pl)+1;if(this.state==='RACING'&&this.mode==='race'&&this.pos&&np<this.pos){this.popup('تجاوز! المركز '+np);this.audio.coin()}this.pos=np;this.tot=all.length;
+ post(dt){const p=this.pl,tk=this.tk,len=tk.len,all=[{pl:1,pr:(this.lap-1)*len+this.ps}];for(const a of this.ai)if(!a.tr)all.push({pr:(a.lap-1)*len+a.s});all.sort((x,y)=>y.pr-x.pr);const np=all.findIndex(x=>x.pl)+1;if(this.state==='RACING'&&this.mode==='race'&&this.pos&&np<this.pos){this.popup('تجاوز! المركز '+np);this.audio.coin();this.misAdd('over',1)}this.pos=np;this.tot=all.length;
   if(this.state==='COUNT'){const c=Math.ceil(this.cd);if(c>0)this.set('count',String(c))}
   if(this.state==='FIN'){this.fin-=dt;if(this.fin<=0)this.finish()}}
  finish(){this.state='OVER';const d=this.pl.d;let rec=false,saved=null;try{const o=JSON.parse(localStorage.getItem('ss3d_best')||'{}');saved=o[d.id]!=null?o[d.id]:null;if(this.best!=null&&(saved==null||this.best<saved)){o[d.id]=this.best;saved=this.best;rec=true;localStorage.setItem('ss3d_best',JSON.stringify(o))}}catch(e){}
   const race=this.mode==='race';let earn=race?(REWARD[this.finPos-1]||25):(rec?100:40);earn+=Math.min(60,Math.floor(this.drift/60));
- this.coins+=earn;this.saveCoins();this.garage();$('oCoins').textContent='+'+earn+' جنيه';
+ this.coins+=earn;this.saveCoins();this.garage();this.misAdd('finish',1);if(race&&this.finPos===1)this.misAdd('win',1);this.misAdd('drift',Math.floor(this.drift));this.misAdd('speed',Math.round(this.maxV));this.lastShare={race,pos:this.finPos,tot:this.tot,best:this.best,v:Math.round(this.maxV)};this.misRender();$('oCoins').textContent='+'+earn+' جنيه';
  $('oS').textContent=race?this.finPos+'/'+this.tot:fmt(this.finT);$('oNew').hidden=!rec;$('oL').textContent=race?'المركز النهائي':'الزمن الكلي';$('oD').textContent=fmt(this.finT);$('oN').textContent=fmt(this.best);$('oC').textContent=Math.round(this.maxV)+' كم/س';$('oT').textContent=Math.round(this.pl.dmg)+'%';$('oH').textContent=fmt(saved);
   $('hud').hidden=true;$('touch').hidden=true;$('over').hidden=false;this.audio.update(0,false,false)}
  draw(dt){const w=this.world,p=this.pl,c=w.cam,sp=p.speed,wv=p.wv(),d=p.d;

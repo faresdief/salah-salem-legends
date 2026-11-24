@@ -142,6 +142,9 @@ body.rain #rainfx{display:block}
 #paint{position:absolute;top:10px;left:10px;width:auto;min-height:0;padding:6px 14px;font-size:12px}
 .touch .dash{top:calc(var(--sat) + 164px)}
 @media(max-width:430px){.touch #map{display:none}}
+.lbname{display:flex;gap:8px}.lbname input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--s2);color:inherit;border-radius:12px;padding:10px 12px;font:inherit}
+.lblist{display:flex;flex-direction:column;gap:4px;font-size:14px;max-height:260px;overflow-y:auto}.lbrow{display:flex;justify-content:space-between;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.04)}.lbrow.me{background:rgba(255,138,31,.22)}
+.lbname .btn{flex:0 0 auto;width:auto;max-width:none;padding:0 20px}.lbname input{flex:1 1 auto;width:0}
 </style></head>
 <body>
 <canvas id="cv"></canvas>
@@ -650,6 +653,44 @@ class LobbyManager{
  async run(f){try{await f();this.q('ls').textContent=(this.n.mode==='local'?'وضع محلي - ':'متصل - ')+'اللوبي '+this.n.code}catch(e){this.q('ls').textContent='تعذر الدخول: '+e.message}}
 }
 S.NetworkBridge=NetworkBridge;S.LobbyManager=LobbyManager;})(window.SS);
+/* Online leaderboard (Firebase, free Spark plan). Loaded lazily; the game works fully without it. */
+(function(S){'use strict';
+const CFG={apiKey:"AIzaSyDYTBBXzQmJw_LA1llT9YdO_-j9x3roPvc",authDomain:"salah-salem-legends.firebaseapp.com",projectId:"salah-salem-legends",storageBucket:"salah-salem-legends.firebasestorage.app",messagingSenderId:"103035538706",appId:"1:103035538706:web:6da2157fecbf01fcd7f7cb"};
+const V='10.12.2',B='https://www.gstatic.com/firebasejs/'+V+'/firebase-';
+const ls=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},lset=(k,v)=>{try{localStorage.setItem(k,String(v))}catch(e){}};
+let dbp=null,lastSend=0,busy=false;
+function script(u){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.async=true;s.onload=ok;s.onerror=()=>no(new Error('load'));document.head.appendChild(s);setTimeout(()=>no(new Error('timeout')),12000)})}
+function conn(){if(dbp)return dbp;dbp=(async()=>{if(!navigator.onLine)throw new Error('offline');
+  await script(B+'app-compat.js');await Promise.all([script(B+'auth-compat.js'),script(B+'firestore-compat.js')]);
+  const app=firebase.apps.length?firebase.app():firebase.initializeApp(CFG);
+  const au=app.auth();if(!au.currentUser)await au.signInAnonymously();
+  return{db:app.firestore(),uid:au.currentUser.uid}})();dbp.catch(()=>{dbp=null});return dbp}
+const LB={
+ pts(){return Math.max(0,parseInt(ls('ss3d_pts','0'))||0)},
+ name(){let n=ls('ss3d_name','');if(!n){n='سواق'+Math.floor(100+Math.random()*900);lset('ss3d_name',n)}return n},
+ setName(n){n=String(n||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,16);if(n){lset('ss3d_name',n);lset('ss3d_dirty',1)}return this.name()},
+ add(n,car){lset('ss3d_pts',this.pts()+Math.max(0,Math.min(2000,Math.round(n)||0)));if(car)lset('ss3d_car',String(car).slice(0,24));lset('ss3d_dirty',1);setTimeout(()=>this.sync().catch(()=>{}),2500)},
+ async sync(){if(busy||ls('ss3d_dirty','0')!=='1'||this.pts()<=0)return false;if(Date.now()-lastSend<25000)return false;busy=true;
+  try{const c=await conn();const d={name:this.name(),score:this.pts(),t:firebase.firestore.FieldValue.serverTimestamp()};const car=ls('ss3d_car','');if(car)d.car=car;
+   await c.db.collection('scores').doc(c.uid).set(d);lastSend=Date.now();lset('ss3d_dirty',0);return true}finally{busy=false}},
+ async top(){const c=await conn();const s=await c.db.collection('scores').orderBy('score','desc').limit(10).get();return{uid:c.uid,rows:s.docs.map(x=>Object.assign({id:x.id},x.data()))}}
+};
+S.lb=LB;
+function ui(){const side=document.querySelector('#menu .side');if(!side||document.getElementById('lbCard'))return;
+ const c=document.createElement('div');c.className='card';c.id='lbCard';
+ c.innerHTML='<h2>لوحة الشرف</h2><div class="lbname"><input id="lbName" maxlength="16" aria-label="اسمك" autocomplete="off"><button class="btn tint" id="lbSave">حفظ</button></div><div id="lbList" class="lblist"></div><p class="foot" id="lbNote">نقاطك: <b id="lbPts">0</b></p><button class="btn tint" id="lbRef">تحديث</button>';
+ side.appendChild(c);const $=i=>document.getElementById(i);$('lbName').value=LB.name();
+ async function load(){$('lbPts').textContent=LB.pts();const l=$('lbList');l.textContent='...';
+  try{try{await LB.sync()}catch(e){}const r=await LB.top();l.textContent='';
+   if(!r.rows.length){l.textContent='لسه مفيش حد. كن الأول!';return}
+   r.rows.forEach((x,i)=>{const row=document.createElement('div');row.className='lbrow'+(x.id===r.uid?' me':'');
+    const a=document.createElement('span');a.textContent=(i+1)+'. '+String(x.name||'').slice(0,16);const b=document.createElement('b');b.textContent=x.score;row.append(a,b);l.appendChild(row)})}
+  catch(e){l.textContent='اللوحة مش متاحة دلوقتي (أوفلاين). اللعبة شغالة عادي.'}}
+ $('lbSave').onclick=()=>{$('lbName').value=LB.setName($('lbName').value);load()};$('lbRef').onclick=load;
+ let started=false;const go=()=>{if(started)return;started=true;load()};
+ if('IntersectionObserver' in window){new IntersectionObserver((e,o)=>{if(e[0].isIntersecting){go();o.disconnect()}}).observe(c)}else go()}
+window.addEventListener('DOMContentLoaded',()=>setTimeout(ui,300));
+})(window.SS);
 
 </script>
 <script>
@@ -797,7 +838,7 @@ class Game{
   if(this.state==='COUNT'){const c=Math.ceil(this.cd);if(c>0)this.set('count',String(c))}
   if(this.state==='FIN'){this.fin-=dt;if(this.fin<=0)this.finish()}}
  finish(){this.state='OVER';const d=this.pl.d;let rec=false,saved=null;try{const o=JSON.parse(localStorage.getItem('ss3d_best')||'{}');saved=o[d.id]!=null?o[d.id]:null;if(this.best!=null&&(saved==null||this.best<saved)){o[d.id]=this.best;saved=this.best;rec=true;localStorage.setItem('ss3d_best',JSON.stringify(o))}}catch(e){}
-  const race=this.mode==='race';let earn=race?(REWARD[this.finPos-1]||25):(rec?100:40);earn+=Math.min(60,Math.floor(this.drift/60));if(this.night&&race)earn=Math.round(earn*1.5);
+  const race=this.mode==='race';let earn=race?(REWARD[this.finPos-1]||25):(rec?100:40);earn+=Math.min(60,Math.floor(this.drift/60));if(this.night&&race)earn=Math.round(earn*1.5);if(S.lb)try{S.lb.add(earn,CARS[this.sel].name)}catch(e){}
  this.coins+=earn;this.saveCoins();this.garage();this.misAdd('finish',1);if(race&&this.finPos===1)this.misAdd('win',1);this.misAdd('drift',Math.floor(this.drift));this.misAdd('speed',Math.round(this.maxV));this.lastShare={race,pos:this.finPos,tot:this.tot,best:this.best,v:Math.round(this.maxV)};this.misRender();$('oCoins').textContent='+'+earn+' جنيه';
  $('oS').textContent=race?this.finPos+'/'+this.tot:fmt(this.finT);$('oNew').hidden=!rec;$('oL').textContent=race?'المركز النهائي':'الزمن الكلي';$('oD').textContent=fmt(this.finT);$('oN').textContent=fmt(this.best);$('oC').textContent=Math.round(this.maxV)+' كم/س';$('oT').textContent=Math.round(this.pl.dmg)+'%';$('oH').textContent=fmt(saved);
   $('hud').hidden=true;$('touch').hidden=true;$('over').hidden=false;this.audio.update(0,false,false)}

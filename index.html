@@ -225,22 +225,22 @@ class Vehicle{
  setWv(a,b){const s=Math.sin(this.h),c=Math.cos(this.h);this.vx=a*s+b*c;this.vy=a*c-b*s}
  get speed(){return Math.hypot(this.vx,this.vy)}
  step(dt,i){const d=this.d,m=d.m,L=d.L,b=d.wf*L,a=L-b,sp=Math.abs(this.vx),Iz=m*a*b*1.1;
-  const O=this.opt,sa=O.sa?-cl(this.vy/Math.max(sp,6)*1.3,-.3,.3):0,stIn=cl(i.steer+sa,-1,1),sr=(Math.abs(stIn)<Math.abs(this.si)?22:16)*dt;this.si+=cl(stIn-this.si,-sr,sr);
-  this.dl=-this.si*Math.min(.7,2.1*L*d.mu*this.grip*G/Math.max(sp*sp,5));
+  const O=this.opt,sa=O.sa?-cl(this.vy/Math.max(sp,6)*1.3,-.3,.3):0,stIn=cl(i.steer+sa,-1,1),sr=(Math.abs(stIn)<Math.abs(this.si)?40:30)*dt;this.si+=cl(stIn-this.si,-sr,sr);
+  this.dl=-this.si*Math.min(.7,3.6*L*d.mu*this.grip*G/Math.max(sp*sp,5));
   this.thr+=cl(i.thr-this.thr,-10*dt,9*dt);this.brk+=cl(i.brk-this.brk,-12*dt,10*dt);
   const rv=i.brk>.1&&this.vx<1&&i.thr<.05;
   let g=this.gear,wr=sp/d.Rw,rpm=wr*d.gr[g]*d.fd*9.5493;
   if(this.sh>0)this.sh-=dt;else if(O.man){if(this.sreq>0&&g<d.gr.length-1){this.gear++;this.sh=.15}else if(this.sreq<0&&g>0){this.gear--;this.sh=.15}this.sreq=0}else if(rpm>d.rl*.94&&g<d.gr.length-1){this.gear++;this.sh=.28}else if(g>0&&wr*d.gr[g-1]*d.fd*9.5493<d.rl*.72){this.gear--;this.sh=.2}
   g=this.gear;rpm=Math.max(wr*d.gr[g]*d.fd*9.5493,900+this.thr*(sp<3?2600:0));this.rpm+=(rpm-this.rpm)*Math.min(1,dt*12);rpm=this.rpm;
   const x=(rpm-d.pk)/(rpm<d.pk?d.pk-900:d.rl-d.pk);let T=d.T*Math.max(.3,1-.55*x*x)*(1-.35*this.dmg/100);if(rpm>=d.rl)T=0;
-  let Fd=this.sh>0?0:T*this.thr*d.gr[g]*d.fd*.85/d.Rw*1.22;
+  let Fd=this.sh>0?0:T*this.thr*d.gr[g]*d.fd*.85/d.Rw*2.3;
   if(!rv&&this.thr<.05&&this.sh<=0&&sp>2)Fd=-d.T*.16*d.gr[g]*d.fd*.85/d.Rw*Math.min(1,rpm/d.rl)*1.22;
   if(rv){Fd=this.vx>-6?-d.T*.5*d.gr[0]*d.fd*.85/d.Rw*i.brk:0}
   const dir=this.vx>=0?1:-1;let Fb=rv?0:this.brk*d.bk*m;Fb=Math.min(Fb,m*sp/dt);
   const Fhb=i.hb?Math.min(.5*m*G,m*sp/dt):0,Fbf=Fb*.62*dir,Fbr=(Fb*.38+Fhb)*dir;
   const wt=m*this.ax*d.h/L,Nf=Math.max(.15*m*G*d.wf,m*G*d.wf-wt),Nr=Math.max(.15*m*G*(1-d.wf),m*G*(1-d.wf)+wt);
   const vxs=Math.max(sp,2.5),af=Math.atan2(this.vy+a*this.r,vxs)-this.dl,ar=Math.atan2(this.vy-b*this.r,vxs);
-  const muf=d.mu*this.grip*1.07;let tf=muf*Nf,tr=muf*(d.murr||1)*Nr;const lock=!O.abs&&this.brk>.8&&sp>3;this.lock=lock;if(lock){tf*=.85;tr*=.55}
+  const muf=d.mu*this.grip*1.2;let tf=muf*Nf,tr=muf*(d.murr||1)*Nr;const lock=!O.abs&&this.brk>.8&&sp>3;this.lock=lock;if(lock){tf*=.85;tr*=.55}
   if(O.tcs&&Fd>0){const cap=.88*(d.rwd?tr:tf);if(Fd>cap)Fd=cap}
   let Fyf=-tf*Math.sin(1.5*Math.atan(d.bf*af)),Fyr=-tr*Math.sin(1.5*Math.atan(d.br*ar));
   let Fxf=(d.rwd?0:Fd)-Fbf,Fxr=(d.rwd?Fd:0)-Fbr,q=Math.hypot(Fxf,Fyf);if(q>tf){Fxf*=tf/q;Fyf*=tf/q}q=Math.hypot(Fxr,Fyr);if(q>tr){Fxr*=tr/q;Fyr*=tr/q}
@@ -618,7 +618,7 @@ S.NetworkBridge=NetworkBridge;S.LobbyManager=LobbyManager;})(window.SS);
 (function(S){'use strict';
 const {CARS,Vehicle,Track,TRACK_PTS,wrap,clamp:cl}=S,$=id=>document.getElementById(id),LAPS=3,NAI=5;
 const KM={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',Space:'hb'};
-const ATM=['morning','fog','night'],ATN={morning:'صباح',fog:'ضباب',night:'ليل'},PAL=[0x2f4a6b,0x8a1f1f,0x3d5a3a,0x6b6f75,0x1e1e1e,0xb8b8b8];
+const ATM=['morning','fog','night'],ATN={morning:'صباح',fog:'ضباب',night:'ليل'},RPAL=[0xe63946,0xf4a300,0x2ec4b6,0x9b5de5,0x00a8e8,0xff6f91],PAL=[0x2f4a6b,0x8a1f1f,0x3d5a3a,0x6b6f75,0x1e1e1e,0xb8b8b8];
 const STATS=[['top','السرعة القصوى'],['acc','التسارع'],['hnd','التحكم'],['mass','الثبات'],['drift','الانزلاق']];
 const NOTE={race:'3 لفات ضد 5 منافسين. اكسب فلوس من مركزك ومن الدرفت والتجاوزات القريبة عشان تفتح عربيات جديدة.',trial:'3 لفات لوحدك على الحلبة والهدف أسرع لفة. بتسابق شبح أسرع لفة مسجلة ليك.'};
 const PRICE={verna:0,taxi:450,fiat:950,micro:1500},REWARD=[120,90,70,50,35,25];
@@ -671,10 +671,12 @@ class Game{
  this.audio.init();const w=this.world,tk=this.tk,d=CARS[this.sel],race=this.mode==='race';
   for(const a of this.ai)w.scene.remove(a.car.g);if(this.pcar)w.scene.remove(this.pcar.g);this.ai=[];
   this.pl=new Vehicle(d);this.pl.opt=this.opt;if(this.fx)this.fx.skid.clear();this.fc=-150;this.pcar=S.makeCar(d,true);w.scene.add(this.pcar.g);const ps=race?3:0;this.place(this.pl,tk.len-12-ps*9,ps%2?3.4:-3.4);
-  if(race){let sl=0;const lanes=[-3.4,3.4];for(let k=0;k<NAI+1;k++){if(k===ps)continue;const base=CARS[(k+this.sel+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=PAL[(k*2+1)%PAL.length];
-   const key=base.id;this.cache[key]=this.cache[key]||tk.profile(base.vt*.98,base.mu*.8,base.aa,7);
+  if(race){let sl=0;const lanes=[-3.4,3.4];for(let k=0;k<NAI+1;k++){if(k===ps)continue;const base=CARS[(k+this.sel+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=RPAL[k%RPAL.length];
+   const key=base.id;this.cache[key]=this.cache[key]||tk.profile(base.vt*.98,base.mu*.95,base.aa*1.4,8);
    const a={def,car:S.makeCar(def,false),prof:this.cache[key],s:tk.len-12-k*9,d:lanes[k%2],lane:lanes[k%2]*(.4+Math.random()*.8),v:0,lap:0,skill:.86+Math.random()*.12,veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};
-   this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}}this.pa={s:0,d:0,v:0};this.all=this.ai.concat([this.pa]);
+   this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}
+  for(let k=0;k<6;k++){const base=CARS[(k*3+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=PAL[k%PAL.length];const tv=14+Math.random()*6,ln=(k%2?1:-1)*3.4+(Math.random()-.5)*1.6,s0=150+(tk.len-330)*(k+.5)/6;
+   const a={tr:1,tv,def,car:S.makeCar(def,false),prof:null,s:s0,d:ln,lane:ln,v:tv,lap:0,skill:1,veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}}this.pa={s:0,d:0,v:0};this.all=this.ai.concat([this.pa]);
   this.loc=tk.locate(this.pl.x,this.pl.z);this.ps=this.loc.sf*tk.ds;this.lap=0;this.lapStart=0;this.best=null;this.last3=null;this.fin=0;this.pos=1;this.maxV=0;this.raceT=0;this.cd=3;this.tot=1;this.state='COUNT';this.paused=false;this.acc=0;this.bump=0;this.ch=this.pl.h;this.keys={};
   this.maxV=0;this.drift=0;this.driftNext=100;this.nearT=0;this.rec=[];this.recT=0;this.mapP=null;this.setGhost();
  Object.assign(this.pa,{s:this.ps,d:this.loc.d,v:0});$('menu').hidden=true;$('over').hidden=true;$('pause').hidden=true;$('hud').hidden=false;w.measure();w.compile();this.shiftUi();$('touch').hidden=!this.coarse;$('bLight').classList.toggle('on',this.hl);$('count').hidden=false;this.txt={}}
@@ -721,16 +723,16 @@ class Game{
      const wv=p.wv(),vr=(wv[0]-Math.sin(v.h)*a.v)*nx+(wv[1]-Math.cos(v.h)*a.v)*nz;if(vr<0){p.setWv(wv[0]-1.25*vr*nx,wv[1]-1.25*vr*nz);a.v*=1-cl(-vr*.015,0,.15);this.hit(-vr*.6,(px+ax)/2,(pz+az)/2)}}}
  if(!tch&&d2<8.5&&p.speed>18&&this.raceT-this.nearT>1.5&&this.state==='RACING'){this.nearT=this.raceT;this.addCoins(5,'تجاوز قريب +5')}}}
  aiStep(a,dt){const tk=this.tk,N=tk.N,len=tk.len,ds=tk.ds,i=Math.floor(a.s/ds)%N,j=(i+1)%N,f=(a.s/ds)%1;
-  let cap=a.prof[(i+Math.floor(a.v*.9/ds)+1)%N]*a.skill*(this.ps!==undefined?(()=>{let q=this.ps-a.s;if(q<-len/2)q+=len;if(q>len/2)q-=len;return q>25?1.05:q<-25?.95:1})():1),tgt=a.lane;
+  let cap=a.tr?a.tv:a.prof[(i+Math.floor(a.v*.9/ds)+1)%N]*a.skill*(this.ps!==undefined?(()=>{let q=this.ps-a.s;if(q<-len/2)q+=len;if(q>len/2)q-=len;return q>25?1.05:q<-25?.95:1})():1),tgt=a.lane;
   const all=this.all;let blk=null,bd=1e9;
   for(const o of all){if(o===a)continue;let q=o.s-a.s;if(q<-len/2)q+=len;if(q>len/2)q-=len;if(q>0&&q<16&&Math.abs(o.d-a.d)<2.6&&q<bd){bd=q;blk=o}}
-  if(blk){cap=Math.min(cap,blk.v*.98+(bd-7)*.4);tgt=cl(blk.d+(a.d>=blk.d?1:-1)*3.2,-5.5,5.5)}
+  if(blk&&!a.tr){cap=Math.min(cap,blk.v*.98+(bd-7)*.4);tgt=cl(blk.d+(a.d>=blk.d?1:-1)*3.2,-5.5,5.5)}
   const od=a.d;a.d+=cl(tgt-a.d,-dt*3.4,dt*3.4);cap=Math.max(cap,0);const pv=a.v;
   if(a.v<cap)a.v=Math.min(cap,a.v+a.def.aa*(1-a.v/(a.def.vt*1.1))*dt*1.3+.004);else a.v=Math.max(cap,a.v-8*dt);
   a.s+=a.v*dt;if(a.s>=len){a.s-=len;a.lap++}
   const v=a.veh,p=tk.P[i],q=tk.P[j],l=tk.Lf[i],dh=wrap(tk.H[j]-tk.H[i]),ks=dh/ds;
   v.x=p.x+(q.x-p.x)*f+l.x*a.d;v.z=p.z+(q.z-p.z)*f+l.z*a.d;v.h=tk.H[i]+dh*f+Math.atan2((a.d-od)/dt,Math.max(a.v,3));v.vx=a.v;v.dl=Math.atan(a.def.L*ks);v.ay=a.v*a.v*ks;v.ax+=((a.v-pv)/dt-v.ax)*.1;v.brk=a.v<pv-.01?1:0}
- post(dt){const p=this.pl,tk=this.tk,len=tk.len,all=[{pl:1,pr:(this.lap-1)*len+this.ps}];for(const a of this.ai)all.push({pr:(a.lap-1)*len+a.s});all.sort((x,y)=>y.pr-x.pr);this.pos=all.findIndex(x=>x.pl)+1;this.tot=all.length;
+ post(dt){const p=this.pl,tk=this.tk,len=tk.len,all=[{pl:1,pr:(this.lap-1)*len+this.ps}];for(const a of this.ai)if(!a.tr)all.push({pr:(a.lap-1)*len+a.s});all.sort((x,y)=>y.pr-x.pr);const np=all.findIndex(x=>x.pl)+1;if(this.state==='RACING'&&this.mode==='race'&&this.pos&&np<this.pos){this.popup('تجاوز! المركز '+np);this.audio.coin()}this.pos=np;this.tot=all.length;
   if(this.state==='COUNT'){const c=Math.ceil(this.cd);if(c>0)this.set('count',String(c))}
   if(this.state==='FIN'){this.fin-=dt;if(this.fin<=0)this.finish()}}
  finish(){this.state='OVER';const d=this.pl.d;let rec=false,saved=null;try{const o=JSON.parse(localStorage.getItem('ss3d_best')||'{}');saved=o[d.id]!=null?o[d.id]:null;if(this.best!=null&&(saved==null||this.best<saved)){o[d.id]=this.best;saved=this.best;rec=true;localStorage.setItem('ss3d_best',JSON.stringify(o))}}catch(e){}
@@ -767,7 +769,7 @@ class Game{
  x.strokeStyle='rgba(245,245,245,.32)';x.lineWidth=4;x.lineJoin='round';x.beginPath();
  m.P.forEach((p,i)=>i?x.lineTo(X(p),Z(p)):x.moveTo(X(p),Z(p)));x.closePath();x.stroke();
  if(this.gh){x.fillStyle='rgba(140,200,255,.85)';x.beginPath();x.arc(X(this.gh.veh),Z(this.gh.veh),3,0,7);x.fill()}
- x.fillStyle='rgba(245,245,245,.75)';for(const a of this.ai){x.beginPath();x.arc(X(a.veh),Z(a.veh),2.6,0,7);x.fill()}
+ x.fillStyle='rgba(245,245,245,.75)';for(const a of this.ai){if(a.tr)continue;x.beginPath();x.arc(X(a.veh),Z(a.veh),2.6,0,7);x.fill()}
  x.fillStyle='#FF8A1F';x.save();x.translate(X(this.pl),Z(this.pl));x.rotate(Math.PI-this.pl.h);
  x.beginPath();x.moveTo(0,-5);x.lineTo(3.4,4);x.lineTo(-3.4,4);x.closePath();x.fill();x.restore()}
 }

@@ -234,7 +234,11 @@ const CARS=[
 {id:'verna',murr:1.12,name:'هيونداي فيرنا GLS',col:0x9da1a6,shape:'sedan',len:4.26,wid:1.68,m:1180,L:2.44,wf:0.59,h:.55,cda:0.66,mu:1.05,T:144,pk:4500,rl:6500,gr:[3.54,2.05,1.39,1.03,.82],fd:4.19,Rw:0.295,rwd:0,bf:12,br:13,bk:10.2,vt:53,aa:3.1,top:.7,acc:.9,hnd:.85,mass:.5,drift:.5},
 {id:'taxi',murr:1.1,name:'تاكسي القاهرة',col:0x15171a,cab:0xe8e8e8,shape:'sedan',len:4.26,wid:1.68,m:1120,L:2.44,wf:.57,h:.56,cda:.7,mu:.97,T:125,pk:4000,rl:6000,gr:[3.6,2,1.4,1,.8],fd:4.3,Rw:0.29,rwd:1,bf:12,br:13,bk:9.8,vt:48,aa:2.8,top:.75,acc:.75,hnd:1,mass:.55,drift:.6},
 {id:'micro',murr:1.12,name:'ميكروباص أبيض',col:0xeeeeee,shape:'van',len:4.695,wid:1.695,m:1850,L:2.57,wf:.52,h:.85,cda:1.25,mu:.9,T:210,pk:2800,rl:4600,gr:[4.3,2.4,1.5,1,.8],fd:4.1,Rw:0.33,rwd:1,bf:11,br:12,bk:9.2,vt:42,aa:2.4,top:.6,acc:.55,hnd:.5,mass:1,drift:.3},
-{id:'fiat',murr:1.1,name:'فيات 128 / شاهين',col:0xd9531e,shape:'boxy',len:4.264,wid:1.65,m:900,L:2.49,wf:.52,h:.5,cda:.62,mu:1.1,T:155,pk:5200,rl:7000,gr:[3.5,2.2,1.5,1.1,.9],fd:4.1,Rw:0.29,rwd:1,bf:13,br:11.5,bk:10.6,vt:61,aa:3.8,top:1,acc:.7,hnd:.65,mass:.3,drift:1}];
+{id:'fiat',murr:1.1,name:'فيات 128 / شاهين',col:0xd9531e,shape:'boxy',len:4.264,wid:1.65,m:900,L:2.49,wf:.52,h:.5,cda:.62,mu:1.1,T:155,pk:5200,rl:7000,gr:[3.5,2.2,1.5,1.1,.9],fd:4.1,Rw:0.29,rwd:1,bf:13,br:11.5,bk:10.6,vt:61,aa:3.8,top:1,acc:.7,hnd:.65,mass:.3,drift:1},
+{id:'empow',murr:1.1,name:'GAC إمباو',col:0x6b7a4a,shape:'fast',len:4.68,wid:1.83,m:1380,L:2.68,wf:.58,h:.54,cda:.66,mu:1.12,T:170,pk:4200,rl:6400,gr:[3.6,2.1,1.45,1.05,.8],fd:4.33,Rw:0.32,rwd:0,bf:12,br:13,bk:10.6,vt:58,aa:3.6,top:.78,acc:.8,hnd:.82,mass:.65,drift:.45},
+{id:'amg',murr:1.15,name:'مرسيدس AMG C63',col:0x20242a,shape:'amg',len:4.78,wid:1.84,m:1700,L:2.84,wf:.54,h:.53,cda:.88,mu:1.2,T:250,pk:4600,rl:7000,gr:[3.6,2.2,1.5,1.1,.85],fd:3.75,Rw:0.325,rwd:1,bf:12,br:13,bk:11,vt:70,aa:4.4,top:.9,acc:.9,hnd:.8,mass:.85,drift:.6},
+{id:'m4',murr:1.15,name:'BMW M4 كوبيه',col:0x2a4a9a,shape:'coupe',len:4.8,wid:1.89,m:1600,L:2.85,wf:.53,h:.5,cda:.88,mu:1.27,T:275,pk:5000,rl:7400,gr:[3.5,2.2,1.55,1.15,.9],fd:3.78,Rw:0.335,rwd:1,bf:13,br:14,bk:11.6,vt:74,aa:4.8,top:.94,acc:.95,hnd:.88,mass:.8,drift:.7},
+{id:'p911',murr:1.2,name:'بورشه 911 كاريرا',col:0xd9b300,shape:'sport',len:4.52,wid:1.9,m:1450,L:2.45,wf:.4,h:.46,cda:.88,mu:1.32,T:280,pk:5200,rl:7500,gr:[3.4,2.1,1.5,1.15,.92],fd:3.7,Rw:0.335,rwd:1,bf:13,br:14,bk:12,vt:74,aa:5.2,top:1,acc:1,hnd:.95,mass:.7,drift:.8}];
 class Vehicle{
  constructor(d){this.d=d;this.opt={man:false,abs:true,tcs:true,sa:true};this.sreq=0;this.reset(0,0,0)}
  shift(dir){this.sreq=dir}
@@ -370,6 +374,34 @@ S.SPECS={
   glass:[{z:[.4,.86],lab:[4.5,6]},{z:[-1.38,-.95],lab:[4.5,6]},
    {z:[-.02,.86],lab:[3.12,3.95],zmax:y=>.85-(y-.86)*.8-.03},{z:[-1.38,-.14],lab:[3.12,3.95],zmin:y=>-1.38+Math.max(0,y-.91)*.8+.03}],
   wheelZ:1.245,track:.7,arch:.35,wr:.29,len:4.264,wid:1.65}};
+
+// derived bodies (Empow fastback, AMG-type sedan, coupe, rear-engine sport): scaled from the sedan section set, then reshaped
+(function(){
+ const B=S.SPECS.sedan,P=(a,sz,sy)=>a.map(p=>[p[0]*sz,p[1]*sy]),W=(a,sz,sx)=>a.map(p=>[p[0]*sz,p[1]*sx]);
+ function xf(L,wid,H,o){o=o||{};const sz=L/4.26,sy=H/1.4,sx=wid/1.68,r={zr:B.zr*sz,zf:B.zf*sz,iter:1,
+  wb:W(o.wb||B.wb,sz,sx),yB:P(o.yB||B.yB,sz,sy),yBe:P(o.yBe||B.yBe,sz,sy),yT:P(o.yT||B.yT,sz,sy),wc:W(o.wc||B.wc,sz,sx*(o.cab||1)),dre:P(B.dre,sz,1),
+  wheelZ:(o.wz||1.22)*sz,track:.72*sx,arch:(o.arch||.355)*Math.min(sz,1.12),wr:o.wr||.31,len:L,wid:wid};
+  r.glass=(o.glass||B.glass).map(g=>{const q={z:g.z.map(v=>v*sz),lab:g.lab};if(g.zmax){const f=g.zmax;q.zmax=y=>sz*f(y/sy)}if(g.zmin){const f=g.zmin;q.zmin=y=>sz*f(y/sy)}return q});return r}
+ // GAC Empow: fastback, long sloping roof, wide stance
+ S.SPECS.fast=xf(4.68,1.83,1.45,{cab:.93,wr:.32,wz:1.25,
+  yT:[[-2.13,.9],[-2.05,.98],[-1.9,1.04],[-1.6,1.16],[-1.2,1.3],[-.8,1.38],[-.4,1.4],[0,1.4],[.25,1.395],[.42,1.37],[.6,1.22],[.78,1.07],[.95,.93],[1.15,.895],[1.5,.86],[1.9,.79],[2.13,.7]],
+  glass:[{z:[.4,.96],lab:[4.5,6]},{z:[-1.75,-.74],lab:[4.5,6]},
+   {z:[-.05,.95],lab:[3.12,3.95],zmax:y=>.95-1.2*(y-.93)-.03},{z:[-1.6,-.17],lab:[3.12,3.95],zmin:y=>-1.6+Math.max(0,y-1.1)*1.8+.03}]});
+ // Mercedes-AMG C63 type: long hood, short deck, low roof
+ S.SPECS.amg=xf(4.78,1.84,1.43,{cab:.95,wr:.325,wz:1.27,yT:B.yT.map(p=>[p[0]+(p[0]>0?.12:-.02),p[1]]),
+  glass:[{z:[.5,1.06],lab:[4.5,6]},{z:[-1.33,-.74],lab:[4.5,6]},
+   {z:[.05,1.05],lab:[3.12,3.95],zmax:y=>1.05-1.2*(y-.93)-.03},{z:[-1.3,-.17],lab:[3.12,3.95],zmin:y=>-1.3+Math.max(0,y-.995)*1.41+.03}]});
+ // BMW M4 type coupe: two doors, low, cabin set back
+ S.SPECS.coupe=xf(4.8,1.89,1.38,{cab:.9,wr:.335,wz:1.28,yT:[[-2.13,.86],[-2.05,.94],[-1.9,.98],[-1.6,1.02],[-1.35,1.06],[-1.1,1.18],[-.8,1.3],[-.4,1.39],[0,1.4],[.25,1.38],[.45,1.3],[.7,1.1],[.95,.93],[1.15,.89],[1.5,.85],[1.9,.78],[2.13,.7]],
+  glass:[{z:[.5,.98],lab:[4.5,6]},{z:[-1.5,-.7],lab:[4.5,6]},
+   {z:[-.05,.95],lab:[3.12,3.95],zmax:y=>.95-1.2*(y-.93)-.03},{z:[-1.45,-.2],lab:[3.12,3.95],zmin:y=>-1.45+Math.max(0,y-1.05)*1.4+.03}]});
+ // Porsche 911 type: short, low, round, rear engine fastback
+ S.SPECS.sport=xf(4.52,1.9,1.3,{cab:.88,wr:.335,wz:1.2,
+  yT:[[-2.13,.95],[-2.05,1.02],[-1.85,1.09],[-1.5,1.16],[-1.1,1.25],[-.7,1.34],[-.3,1.395],[.05,1.4],[.3,1.37],[.5,1.25],[.7,1.05],[.95,.9],[1.2,.84],[1.6,.78],[1.9,.74],[2.13,.68]],
+  yBe:[[-2.13,.84],[-2,.9],[-1.7,.94],[-1.2,.94],[-.5,.93],[.5,.9],[.9,.82],[1.5,.72],[1.9,.66],[2.13,.6]],
+  glass:[{z:[.45,.95],lab:[4.5,6]},{z:[-1.6,-.9],lab:[4.5,6]},
+   {z:[-.25,.95],lab:[3.12,3.95],zmax:y=>.95-1.2*(y-.9)-.03},{z:[-1.5,-.4],lab:[3.12,3.95],zmin:y=>-1.5+Math.max(0,y-1.15)*2+.03}]});
+})();
 })(window.SS=window.SS||{});
 
 </script>
@@ -488,7 +520,7 @@ function makeCar(d,lit){const key=d.shape,taxi=d.id==='taxi',B=bodyGeo(key,taxi)
  if(van){add(Bx(.7,.2,.03),dark,0,.62,zff);add(Bx(.72,.02,.02),chr,0,.68,zff+.012);add(Bx(w*.98,.26,.14),pp,0,.52,zr-.08);add(Bx(w*.98,.26,.14),pp,0,.52,zf+.08);add(Bx(.5,.06,.02),dark,0,.4,zf+.16)}
  else if(fia){add(Bx(.62,.14,.03),dark,0,.55,zff);for(const gy of[.52,.58,.64])add(Bx(.6,.015,.02),chr,0,gy,zff+.008);add(Bx(w*1.0,.11,.12),chr,0,.44,zr-.07);add(Bx(w*1.0,.11,.12),chr,0,.44,zf+.07)}
  else{add(Bx(.5,.09,.03),dark,0,.6,zff);for(const gy of[.565,.6,.635])add(Bx(.48,.014,.02),chr,0,gy,zff+.008);add(Bx(.52,.015,.03),chr,0,.71,zff);add(Bx(w*.98,.1,.05),pp,0,.46,zrf-.02);add(Bx(w*.98,.11,.06),pp,0,.45,zff+.02);add(Bx(.3,.05,.02),dark,0,.4,zff+.04);add(Bx(.1,.03,.02),dark,-.5,.4,zff+.045);add(Bx(.1,.03,.02),dark,.5,.4,zff+.045)}
- const band=(taxi||van)?'#f08a24':'#4aa3d6',pn={verna:['٤٦٨','ب ص ع'],taxi:['٧٢٣','ا ج ر'],micro:['٣١٩','ط ل ن'],fiat:['٥٦٢','د ف ق']}[d.id];
+ const band=(taxi||van)?'#f08a24':'#4aa3d6',pn={verna:['٤٦٨','ب ص ع'],taxi:['٧٢٣','ا ج ر'],micro:['٣١٩','ط ل ن'],fiat:['٥٦٢','د ف ق'],empow:['٨٤١','م ب ص'],amg:['٩٩٩','ع م ج'],m4:['٣٣٣','س ب ر'],p911:['٩١١','ر ش ه']}[d.id];
  for(const sd of[-1,1]){const m=new T.Mesh(new T.PlaneGeometry(.38,.19),new T.MeshStandardMaterial({map:plate(band,pn[0],pn[1]),roughness:.4}));m.position.set(0,sd>0?(van?.8:.52):(van?.8:fia?.64:.62),sd>0?zf+.04:zr-.04);if(sd<0)m.rotation.y=Math.PI;bd.add(m)}
 
  if(d.id==='verna'){
@@ -718,7 +750,7 @@ const ATM=['morning','fog','rain','night'],ATN={morning:'صباح',fog:'ضباب
 const STATS=[['top','السرعة القصوى'],['acc','التسارع'],['hnd','التحكم'],['mass','الثبات'],['drift','الانزلاق']];
 const CAREER=['city','corniche','ring','desert'],CPTS=[10,7,5,3,2,1],CPR=['وسط البلد','الكورنيش','الدائري','طريق الصحراء'];
 const NOTE={night:'سباق 3 لفات بالليل بالنور العالي. المكافأة أكتر 50%.',race:'3 لفات ضد 5 منافسين. اكسب فلوس من مركزك ومن الدرفت والتجاوزات القريبة عشان تفتح عربيات جديدة.',trial:'3 لفات لوحدك على الحلبة والهدف أسرع لفة. بتسابق شبح أسرع لفة مسجلة ليك.'};
-const PRICE={verna:0,taxi:450,fiat:950,micro:1500},REWARD=[120,90,70,50,35,25];
+const PRICE={verna:0,taxi:450,fiat:950,micro:1500,empow:2200,amg:4500,m4:7000,p911:10000},REWARD=[120,90,70,50,35,25];
 const fmt=t=>{if(t==null||!isFinite(t))return '--:--.-';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(1)};
 class Game{
  constructor(){this.audio=new S.AudioEngine();this.lobby=new S.LobbyManager(new S.NetworkBridge());this.trk=(()=>{let k='city';try{k=localStorage.getItem('ss3d_track')||'city'}catch(e){}return TRACKS.some(t=>t.id===k)?k:'city'})();this.tk=new Track(TRACKS.find(t=>t.id===this.trk).pts,3.5);
@@ -730,7 +762,7 @@ class Game{
   this.cells=[];for(let i=0;i<10;i++){const e=document.createElement('i');$('trb').appendChild(e);this.cells.push(e)}
   this.dots=CARS.map(()=>{const e=document.createElement('i');$('dots').appendChild(e);return e});
   try{this.world=new S.World($('cv'),null,this.tk,this.trk);this.prev=new S.Preview($('pv'));this.fx={skid:new S.Skids(this.world.scene),smoke:new S.Smoke(this.world.scene)}}catch(e){console.error(e);this.world=null;$('err').hidden=false;$('err').textContent=window.THREE?'تعذّر تشغيل الرسم ثلاثي الأبعاد على هذا الجهاز أو المتصفح.':'تعذّر تحميل محرك الرسم ثلاثي الأبعاد. اتأكد من الاتصال بالإنترنت وأعد تحميل الصفحة.';$('go').disabled=true}
-  this.bind();this.initTracks();this.initCareer();this.pick(0);this.setAtm(0);$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
+  this.bind();this.initTracks();this.initCareer();this.initUp();this.pick(0);this.setAtm(0);$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
  bind(){const A=(s,f)=>document.querySelectorAll(s).forEach(f);
   addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;this.audio.init();const k=KM[e.code];if(k){this.keys[k]=true;e.preventDefault();return}
    switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyN':this.setAtm(1);break;case'KeyC':this.view^=1;break;case'KeyT':this.recover();break;
@@ -756,7 +788,7 @@ class Game{
   $('stats').innerHTML=STATS.map(([k,n])=>'<div class="st"><span>'+n+'</span><i><b style="width:'+Math.round(d[k]*100)+'%"></b></i></div>').join('');this.dots.forEach((e,j)=>e.classList.toggle('on',j===this.sel));if(this.prev)this.prev.set(d);this.garage()}
  garage(){const d=CARS[this.sel],locked=!this.own[d.id],b=$('buy');b.hidden=!locked;
  if(locked){b.textContent='افتح بـ '+PRICE[d.id]+' جنيه';b.disabled=this.coins<PRICE[d.id];b.style.opacity=b.disabled?.55:1}
- this.set('coinB',String(this.coins));const h=$('hudCoins');if(h)h.textContent=this.coins}
+ this.set('coinB',String(this.coins));this.upUi();const h=$('hudCoins');if(h)h.textContent=this.coins}
  saveCoins(){try{localStorage.setItem('ss3d_coins',String(this.coins));localStorage.setItem('ss3d_own',JSON.stringify(this.own))}catch(e){}}
  addCoins(n,msg){this.coins+=n;this.saveCoins();this.garage();if(msg)this.popup(msg);this.audio.coin()}
  buy(){const d=CARS[this.sel],p=PRICE[d.id];if(this.own[d.id]||this.coins<p)return;
@@ -767,8 +799,8 @@ class Game{
  start(){if(!this.world)return;if(this.night&&this.atm!=='night'){this.atm='night';this.setAtm(0)}if(!this.own[CARS[this.sel].id]){this.popup('العربية مقفولة، افتحها الأول');return}
  this.audio.init();const w=this.world,tk=this.tk,d=CARS[this.sel],race=this.mode==='race';
   if(this.itm)for(const o of this.itm)w.scene.remove(o.m);this.itm=[];this.nit=0;this.oil=0;for(const a of this.ai)w.scene.remove(a.car.g);if(this.pcar)w.scene.remove(this.pcar.g);this.ai=[];
-  this.pl=new Vehicle(d);this.pl.opt=this.opt;if(this.fx)this.fx.skid.clear();this.fc=-150;this.pcar=S.makeCar(d,true);w.scene.add(this.pcar.g);const ps=race?3:0;this.place(this.pl,tk.len-12-ps*9,ps%2?3.4:-3.4);
-  if(race){let sl=0;const lanes=[-3.4,3.4];for(let k=0;k<NAI+1;k++){if(k===ps)continue;const base=CARS[(k+this.sel+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=RPAL[k%RPAL.length];
+  this.pl=new Vehicle(this.tuned(d));this.pl.opt=this.opt;if(this.fx)this.fx.skid.clear();this.fc=-150;this.pcar=S.makeCar(d,true);w.scene.add(this.pcar.g);const ps=race?3:0;this.place(this.pl,tk.len-12-ps*9,ps%2?3.4:-3.4);
+  if(race){let sl=0;const lanes=[-3.4,3.4];for(let k=0;k<NAI+1;k++){if(k===ps)continue;const base=CARS[(k+this.sel+1)%CARS.length],def=Object.assign({},base);if(base.id!=='taxi')def.col=RPAL[k%RPAL.length];
    const key=base.id;this.cache[key]=this.cache[key]||tk.profile(base.vt*.98,base.mu*.95,base.aa*1.4,8);
    const a={def,car:S.makeCar(def,false),prof:this.cache[key],s:tk.len-12-k*9,d:lanes[k%2],lane:lanes[k%2]*(.4+Math.random()*.8),v:0,lap:0,skill:Math.min(.99,.86+Math.random()*.12+(this.career?(this.carD().season-1)*.015:0)),veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};
    this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}
@@ -781,6 +813,16 @@ class Game{
  carSave(d){try{localStorage.setItem('ss3d_career',JSON.stringify(d))}catch(e){}}
  carUi(){const d=this.carD(),e=$('carInfo');if(!e)return;const tot=d.pts.reduce((a,b)=>a+b,0);e.innerHTML='';const h=document.createElement('div');h.className='lbrow';const a=document.createElement('span');a.textContent='الموسم '+d.season+' - الجولة '+(d.round+1)+'/4';const b=document.createElement('b');b.textContent=tot+' نقطة';h.append(a,b);e.appendChild(h);
   const n=document.createElement('p');n.className='foot';n.textContent='الجولة الجاية: '+CPR[d.round]+(d.titles?' | بطولات: '+d.titles:'');e.appendChild(n)}
+ upg(){try{return JSON.parse(localStorage.getItem('ss3d_up')||'{}')}catch(e){return{}}}
+ upLv(id){const u=this.upg()[id]||{};return{e:u.e|0,t:u.t|0,n:u.n|0}}
+ tuned(d){const l=this.upLv(d.id);return Object.assign({},d,{T:d.T*(1+.07*l.e),mu:d.mu*(1+.035*l.t),nl:l.n})}
+ upCost(d,lv){return Math.round((200+(PRICE[d.id]||0)*.12)*(lv+1)/10)*10}
+ initUp(){const m=document.querySelector('.modes-card');if(!m||$('upCard'))return;const c=document.createElement('div');c.className='card';c.id='upCard';c.innerHTML='<h2>التعديلات</h2><div id="upRows"></div><p class="foot">المحرك أقوى، الكاوتش أمسك، النيترو أطول وأسرع. لكل عربية مستوياتها.</p>';m.parentNode.insertBefore(c,m);this.upUi()}
+ upUi(){const r=$('upRows');if(!r)return;const d=CARS[this.sel],own=!!this.own[d.id],l=this.upLv(d.id),T=[['e','المحرك'],['t','الكاوتش'],['n','النيترو']];r.innerHTML='';
+  if(!own){r.innerHTML='<p class="foot">افتح العربية الأول عشان تعدّلها.</p>';return}
+  for(const [k,n] of T){const lv=l[k],row=document.createElement('div');row.className='st';const b=document.createElement('button');b.className='btn tint';const mx=lv>=3;b.textContent=mx?'أقصى':'ارفع '+this.upCost(d,lv)+' جنيه';b.disabled=mx||this.coins<this.upCost(d,lv);b.style.opacity=b.disabled?.55:1;b.onclick=()=>this.upBuy(k);
+   row.innerHTML='<span>'+n+' '+'★'.repeat(lv)+'☆'.repeat(3-lv)+'</span>';row.appendChild(b);r.appendChild(row)}}
+ upBuy(k){const d=CARS[this.sel],l=this.upLv(d.id);if(!this.own[d.id]||l[k]>=3)return;const p=this.upCost(d,l[k]);if(this.coins<p)return;this.coins-=p;l[k]++;const u=this.upg();u[d.id]=l;try{localStorage.setItem('ss3d_up',JSON.stringify(u))}catch(e){}this.saveCoins();this.audio.init();this.audio.coin();this.popup('تم التعديل');this.garage()}
  initCareer(){const m=document.querySelector('.modes-card');if(!m||$('carCard'))return;const c=document.createElement('div');c.className='card';c.id='carCard';c.innerHTML='<h2>المسيرة</h2><div id="carInfo"></div><button class="btn primary" id="carGo">ابدأ الجولة</button>';m.parentNode.insertBefore(c,m);
   $('carGo').onclick=()=>{this.audio.init();const d=this.carD();this.career=1;const rb=document.querySelector('#modes [data-m=race]');if(rb)rb.click();this.useTrack(CAREER[d.round],true);this.start()};this.carUi()}
  carFinish(){const d=this.carD(),p=this.finPos;const pt=CPTS[p-1]||0;d.pts[d.round]=pt;let msg='المسيرة: +'+pt+' نقطة';d.unlocked=Math.max(d.unlocked,Math.min(3,d.round+1));
@@ -812,7 +854,7 @@ class Game{
  sim(h){const p=this.pl,tk=this.tk,k=this.keys,I=this.inp,len=tk.len;
   if(this.state==='COUNT'){this.cd-=h;p.thr+=((k.up?1:0)-p.thr)*h*5;p.rpm=900+p.thr*3600;p.gear=0;if(this.cd<=0){this.state='RACING';this.raceT=0;$('count').textContent='انطلق';setTimeout(()=>{if(this.state!=='MENU')$('count').hidden=true},900)}}
   else{I.steer=(k.right?1:0)-(k.left?1:0);if(this.opt.tilt&&this.coarse)I.steer=cl(I.steer+(this.opt.inv?-1:1)*this.tilt/20,-1,1);I.steer=cl(I.steer+(this.wv||0),-1,1);I.thr=k.up?1:0;I.brk=k.down?1:0;I.hb=k.hb?1:0;if(this.state==='FIN'){I.steer=0;I.thr=0;I.brk=.5;I.hb=0}
-   const ad=Math.abs(this.loc.d);p.grip=ad<7.5?1:ad<8.4?.96:.72;if(this.atm==='rain')p.grip*=.88;if(this.oil>0){this.oil-=h;p.grip*=.42}if(this.nit>0){this.nit-=h;if(p.vx>0&&p.vx<p.d.vt*1.12)p.vx+=13*h}p.step(h,I);this.items(h);this.raceT+=h;
+   const ad=Math.abs(this.loc.d);p.grip=ad<7.5?1:ad<8.4?.96:.72;if(this.atm==='rain')p.grip*=.88;if(this.oil>0){this.oil-=h;p.grip*=.42}if(this.nit>0){this.nit-=h;if(p.vx>0&&p.vx<p.d.vt*1.12)p.vx+=13*(1+.1*(p.d.nl|0))*h}p.step(h,I);this.items(h);this.raceT+=h;
    this.loc=tk.locate(p.x,p.z,this.loc.i);this.collide();const s=this.loc.sf*tk.ds;
    if(this.ps>len*.75&&s<len*.25){this.lap++;this.onLap()}else if(this.ps<len*.25&&s>len*.75)this.lap--;this.ps=s;this.pa.s=s;this.pa.d=this.loc.d;this.pa.v=p.speed;this.maxV=Math.max(this.maxV,p.vx*3.6);
  if(this.mode==='trial'){this.recT-=h;if(this.recT<=0){this.recT=.1;this.rec.push([+(this.raceT-this.lapStart).toFixed(2),+p.x.toFixed(2),+p.z.toFixed(2),+p.h.toFixed(3)])}}
@@ -832,7 +874,7 @@ class Game{
   for(let k=0;k<6;k++)add('n',.1+k*.15,(k%2?1:-1)*(1.5+Math.random()*3));
   for(let k=0;k<4;k++)add('o',.18+k*.22+Math.random()*.05,(Math.random()<.5?-1:1)*(1+Math.random()*3.5))}
  items(h){if(!this.itm||this.state==='COUNT')return;const p=this.pl;for(const o of this.itm){if(o.k==='n'){o.m.rotation.y+=h*3;if(o.t>0){o.t-=h;o.m.visible=o.t<=0;continue}}
-  if(Math.hypot(p.x-o.x,p.z-o.z)<2.1){if(o.k==='n'){o.t=15;o.m.visible=false;this.nit=2.6;this.popup('نيترو!');this.audio.coin()}else if(this.oil<=0&&this.state==='RACING'){this.oil=1.4;this.popup('بقعة زيت!');this.hit(2)}}}}
+  if(Math.hypot(p.x-o.x,p.z-o.z)<2.1){if(o.k==='n'){o.t=15;o.m.visible=false;this.nit=2.6*(1+.25*(this.pl.d.nl|0));this.popup('نيترو!');this.audio.coin()}else if(this.oil<=0&&this.state==='RACING'){this.oil=1.4;this.popup('بقعة زيت!');this.hit(2)}}}}
 
  initWheel(){const w=$('wheel');if(!w)return;this.wv=0;this.wr=0;this.wd=false;let a0=0,sx=0,id=-1;const ang=e=>{const b=w.getBoundingClientRect();return Math.atan2(e.clientY-(b.top+b.height/2),e.clientX-(b.left+b.width/2))};
   w.addEventListener('pointerdown',e=>{e.preventDefault();if(this.wd)return;this.audio.init();this.wd=true;this.wraw=0;id=e.pointerId;a0=ang(e);{const b=w.getBoundingClientRect();this.wr0=Math.hypot(e.clientX-(b.left+b.width/2),e.clientY-(b.top+b.height/2))}sx=e.clientX;try{w.setPointerCapture(e.pointerId)}catch(x){}});

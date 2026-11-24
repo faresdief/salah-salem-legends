@@ -146,6 +146,7 @@ body.rain #rainfx{display:block}
 .lblist{display:flex;flex-direction:column;gap:4px;font-size:14px;max-height:260px;overflow-y:auto}.lbrow{display:flex;justify-content:space-between;padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.04)}.lbrow.me{background:rgba(255,138,31,.22)}
 .lbname .btn{flex:0 0 auto;width:auto;max-width:none;padding:0 20px}.lbname input{flex:1 1 auto;width:0}
 .seg.trk{display:grid;grid-template-columns:1fr 1fr;gap:6px}.seg.trk button{min-height:42px}
+#dList{margin:8px 0 10px}#dInfo{margin-bottom:6px}
 </style></head>
 <body>
 <canvas id="cv"></canvas>
@@ -725,6 +726,9 @@ const LB={
  async top(){const c=await conn();const s=await c.db.collection('scores').orderBy('score','desc').limit(10).get();return{uid:c.uid,rows:s.docs.map(x=>Object.assign({id:x.id},x.data()))}}
 };
 S.lb=LB;
+LB.dailySend=async function(day,best){day=day|0;best=Math.round(best*100)/100;if(!(best>=20&&best<=900))return false;const c=await conn(),ref=c.db.collection('daily').doc(day+'_'+c.uid),sn=await ref.get();if(sn.exists&&sn.data().best<=best)return false;
+ await ref.set({name:this.name(),day:day,best:best,car:'verna',t:firebase.firestore.FieldValue.serverTimestamp()});return true};
+LB.dailyTop=async function(day){const c=await conn(),s=await c.db.collection('daily').where('day','==',day|0).limit(50).get();const rows=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>a.best-b.best).slice(0,10);return{uid:c.uid,rows}};
 function ui(){const side=document.querySelector('#menu .side');if(!side||document.getElementById('lbCard'))return;
  const c=document.createElement('div');c.className='card';c.id='lbCard';
  c.innerHTML='<h2>لوحة الشرف</h2><div class="lbname"><input id="lbName" maxlength="16" aria-label="اسمك" autocomplete="off"><button class="btn tint" id="lbSave">حفظ</button></div><div id="lbList" class="lblist"></div><p class="foot" id="lbNote">نقاطك: <b id="lbPts">0</b></p><button class="btn tint" id="lbRef">تحديث</button>';
@@ -762,7 +766,7 @@ class Game{
   this.cells=[];for(let i=0;i<10;i++){const e=document.createElement('i');$('trb').appendChild(e);this.cells.push(e)}
   this.dots=CARS.map(()=>{const e=document.createElement('i');$('dots').appendChild(e);return e});
   try{this.world=new S.World($('cv'),null,this.tk,this.trk);this.prev=new S.Preview($('pv'));this.fx={skid:new S.Skids(this.world.scene),smoke:new S.Smoke(this.world.scene)}}catch(e){console.error(e);this.world=null;$('err').hidden=false;$('err').textContent=window.THREE?'تعذّر تشغيل الرسم ثلاثي الأبعاد على هذا الجهاز أو المتصفح.':'تعذّر تحميل محرك الرسم ثلاثي الأبعاد. اتأكد من الاتصال بالإنترنت وأعد تحميل الصفحة.';$('go').disabled=true}
-  this.initChase();this.bind();this.initTracks();this.initCareer();this.initUp();this.pick(0);this.setAtm(0);$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
+  this.initChase();this.bind();this.initDaily();this.initTracks();this.initCareer();this.initUp();this.pick(0);this.setAtm(0);$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
  bind(){const A=(s,f)=>document.querySelectorAll(s).forEach(f);
   addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;this.audio.init();const k=KM[e.code];if(k){this.keys[k]=true;e.preventDefault();return}
    switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyN':this.setAtm(1);break;case'KeyC':this.view^=1;break;case'KeyT':this.recover();break;
@@ -775,7 +779,7 @@ class Game{
   for(const[id,k]of OPT){const e=$(id);e.checked=!!this.opt[k];e.onchange=()=>{this.opt[k]=e.checked;try{localStorage.setItem('ss3d_opt',JSON.stringify(this.opt))}catch(x){}
    if(k==='tilt'&&e.checked)this.enableTilt();if(this.pl)this.pl.opt=this.opt;this.shiftUi()}}
   $('pr').onclick=()=>this.pick(this.sel-1);$('nx').onclick=()=>this.pick(this.sel+1);
-  A('#modes .mode',b=>b.onclick=()=>{const m=b.dataset.m;this.night=m==='night';this.chase=m==='chase';this.mode=(this.night||this.chase)?'race':m;$('modeNote').textContent=this.night?NOTE.night:this.chase?NOTE.chase:NOTE[this.mode];A('#modes .mode',x=>x.classList.toggle('on',x===b))});
+  A('#modes .mode',b=>b.onclick=()=>{const m=b.dataset.m;this.night=m==='night';this.chase=m==='chase';this.daily=0;this.mode=(this.night||this.chase)?'race':m;$('modeNote').textContent=this.night?NOTE.night:this.chase?NOTE.chase:NOTE[this.mode];A('#modes .mode',x=>x.classList.toggle('on',x===b))});
   A('#tabs button',b=>b.onclick=()=>{A('#tabs button',x=>x.classList.toggle('on',x===b));$('tRace').hidden=b.dataset.t!=='tRace';$('tLobby').hidden=b.dataset.t!=='tLobby'});
   $('buy').onclick=()=>this.buy();$('go').onclick=()=>{this.career=0;this.start()};this.initPaint();this.initWheel();if($('share'))$('share').onclick=()=>this.share();this.misRender();$('again').onclick=()=>{this.career=0;this.start()};$('restart').onclick=()=>this.start();$('resume').onclick=()=>this.resume();$('toMenu').onclick=()=>this.toMenu();$('toMenu2').onclick=()=>this.toMenu();
   $('bPause').onclick=()=>this.pause();$('bMute').onclick=()=>this.toggleM();$('bLight').onclick=()=>{this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl)};$('atm').onclick=()=>this.setAtm(1)}
@@ -799,7 +803,7 @@ class Game{
  start(){if(!this.world)return;if(this.night&&this.atm!=='night'){this.atm='night';this.setAtm(0)}if(!this.own[CARS[this.sel].id]){this.popup('العربية مقفولة، افتحها الأول');return}
  this.audio.init();const w=this.world,tk=this.tk,d=CARS[this.sel],race=this.mode==='race';
   if(this.itm)for(const o of this.itm)w.scene.remove(o.m);this.itm=[];this.nit=0;this.oil=0;this.fuel=100;this.bust=0;this.busted=0;if($('chTxt')){$('chTxt').hidden=!this.chase;this.txt.chTxt=null}for(const a of this.ai)w.scene.remove(a.car.g);if(this.pcar)w.scene.remove(this.pcar.g);this.ai=[];
-  this.pl=new Vehicle(this.tuned(d));this.pl.opt=this.opt;if(this.fx)this.fx.skid.clear();this.fc=-150;this.pcar=S.makeCar(d,true);w.scene.add(this.pcar.g);const ps=race?3:0;this.place(this.pl,tk.len-12-ps*9,ps%2?3.4:-3.4);
+  this.pl=new Vehicle(this.daily&&this.sel===0?d:this.tuned(d));this.pl.opt=this.opt;if(this.fx)this.fx.skid.clear();this.fc=-150;this.pcar=S.makeCar(d,true);w.scene.add(this.pcar.g);const ps=race?3:0;this.place(this.pl,tk.len-12-ps*9,ps%2?3.4:-3.4);
   if(race){let sl=0;const lanes=[-3.4,3.4];for(let k=0;k<NAI+1;k++){if(k===ps)continue;if(this.chase&&this.ai.length>=3)break;const base=this.chase?CARS.find(c=>c.id==='amg'):CARS[(k+this.sel+1)%CARS.length],def=Object.assign({},base);if(base.id!=='taxi')def.col=this.chase?0xf2f2f2:RPAL[k%RPAL.length];
    const key=this.chase?'pol'+d.id:base.id;this.cache[key]=this.cache[key]||(this.chase?tk.profile(d.vt*.99,d.mu*.97,d.aa*1.4,8):tk.profile(base.vt*.98,base.mu*.95,base.aa*1.4,8));
    const a={def,car:S.makeCar(def,false),prof:this.cache[key],pol:this.chase?1:0,s:this.chase?tk.len-55-k*9:tk.len-12-k*9,d:lanes[k%2],lane:lanes[k%2]*(.4+Math.random()*.8),v:0,lap:0,skill:Math.min(.99,.86+Math.random()*.12+(this.career?(this.carD().season-1)*.015:0)),veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};
@@ -830,6 +834,14 @@ class Game{
   this.bust=near?this.bust+h*34:Math.max(0,this.bust-h*14);
   if(this.bust>=100){this.bust=100;this.busted=1;this.state='FIN';this.fin=2;this.finT=this.raceT;this.finPos=this.tot;this.popup('اتقبض عليك!')}
   this.set('chTxt','بنزين '+Math.round(this.fuel)+'%  ·  القبض '+Math.round(this.bust)+'%')}
+ dTrack(){return TRACKS[this.misDay()%TRACKS.length].id}
+ initDaily(){const m=document.querySelector('.modes-card');if(!m||$('dCard'))return;const c=document.createElement('div');c.className='card';c.id='dCard';c.innerHTML='<h2>تحدي اليوم</h2><div id="dInfo" class="foot"></div><div id="dList" class="lblist"></div><button class="btn primary" id="dGo">ابدأ التحدي</button><p class="foot">نفس الحلبة ونفس العربية (فيرنا بدون تعديلات) للكل. أسرع لفة تتسجل في اللوحة.</p>';m.parentNode.insertBefore(c,m);
+  $('dGo').onclick=()=>{this.audio.init();this.career=0;const b=document.querySelector('#modes [data-m=trial]');if(b)b.click();this.daily=1;this.pick(0);this.useTrack(this.dTrack(),true);this.start()};
+  this.dailyUi();setTimeout(()=>this.dailyUi(),2500)}
+ dLocal(){let l=null;try{l=JSON.parse(localStorage.getItem('ss3d_daily')||'null')}catch(e){}return l&&l.day===this.misDay()?l:null}
+ dailyDone(lt){const day=this.misDay(),l=this.dLocal();if(l&&lt>=l.best)return;try{localStorage.setItem('ss3d_daily',JSON.stringify({day,best:lt}))}catch(e){}this.popup('أحسن لفة النهاردة '+fmt(lt));if(S.lb&&S.lb.dailySend)S.lb.dailySend(day,lt).then(ok=>{if(ok){this.popup('اتسجلت في لوحة اليوم');this.dailyUi()}}).catch(()=>{})}
+ dailyUi(){const i=$('dInfo'),L=$('dList');if(!i)return;const day=this.misDay(),df=TRACKS.find(t=>t.id===this.dTrack()),l=this.dLocal();i.textContent='حلبة النهاردة: '+df.n+' | أحسن لفة ليك: '+(l?fmt(l.best):'--');
+  if(!S.lb||!S.lb.dailyTop){L.textContent='';return}S.lb.dailyTop(day).then(r=>{L.textContent='';r.rows.forEach((x,k)=>{const row=document.createElement('div');row.className='lbrow'+(x.id.slice(-28)===r.uid?' me':'');const a=document.createElement('span');a.textContent=(k+1)+'. '+String(x.name||'').slice(0,16);const b=document.createElement('b');b.textContent=fmt(x.best);row.append(a,b);L.appendChild(row)});if(!r.rows.length)L.textContent='لسه محدش جرّب. كن الأول!'}).catch(()=>{L.textContent='اللوحة مش متاحة دلوقتي (أوفلاين).'})}
  initCareer(){const m=document.querySelector('.modes-card');if(!m||$('carCard'))return;const c=document.createElement('div');c.className='card';c.id='carCard';c.innerHTML='<h2>المسيرة</h2><div id="carInfo"></div><button class="btn primary" id="carGo">ابدأ الجولة</button>';m.parentNode.insertBefore(c,m);
   $('carGo').onclick=()=>{this.audio.init();const d=this.carD();this.career=1;const rb=document.querySelector('#modes [data-m=race]');if(rb)rb.click();this.useTrack(CAREER[d.round],true);this.start()};this.carUi()}
  carFinish(){const d=this.carD(),p=this.finPos;const pt=CPTS[p-1]||0;d.pts[d.round]=pt;let msg='المسيرة: +'+pt+' نقطة';d.unlocked=Math.max(d.unlocked,Math.min(3,d.round+1));
@@ -853,7 +865,7 @@ class Game{
  recover(){if(this.state!=='RACING'||!this.pl)return;const p=this.pl,tk=this.tk,l=tk.locate(p.x,p.z,this.loc.i);const q=tk.P[l.i];const dm=p.dmg;p.reset(q.x,q.z,tk.H[l.i]);p.dmg=dm;p.vx=6;this.loc=l}
  pause(){if(this.state==='MENU'||this.state==='OVER'||this.paused)return;this.paused=true;this.keys={};$('pause').hidden=false;this.audio.update(0,false,false)}
  resume(){if(!this.paused)return;this.paused=false;$('pause').hidden=true}
- toMenu(){this.state='MENU';this.paused=false;this.keys={};['hud','touch','pause','over','count'].forEach(i=>$(i).hidden=true);$('menu').hidden=false;this.audio.update(0,false,false)}
+ toMenu(){this.state='MENU';setTimeout(()=>this.dailyUi&&this.dailyUi(),600);this.paused=false;this.keys={};['hud','touch','pause','over','count'].forEach(i=>$(i).hidden=true);$('menu').hidden=false;this.audio.update(0,false,false)}
  loop(ts){const dt=Math.min(Math.max(0,(ts-this.last)/1000),.05);this.last=ts;
   try{this.t+=dt;if(this.state==='MENU'){if(this.prev)this.prev.render(this.t)}else{if(!this.paused&&this.state!=='OVER')this.update(dt);this.draw(dt)}}catch(e){console.error(e)}
   requestAnimationFrame(t=>this.loop(t))}
@@ -892,7 +904,7 @@ class Game{
  wheelStep(dt){if(!this.wheelEl)this.wheelEl=document.getElementById('wsvg');if(!this.wheelEl||this.wv===undefined)return;if(this.wd){const tg=this.wheelCurve(this.wraw||0);this.wv+=(tg-this.wv)*(1-Math.exp(-14*dt));this.wr=this.wv*1.3}else if(this.wv!==0){this.wraw=0;this.wv*=Math.exp(-9*dt);if(Math.abs(this.wv)<.01)this.wv=0;this.wr=this.wv*1.3}const t='rotate('+(this.wr*57.3).toFixed(1)+'deg)';if(t!==this.wt){this.wt=t;this.wheelEl.style.transform=t}}
  initPaint(){const V=[0x9da1a6,0x0d0d0f,0xeeeeee,0x8a1f1f],b=$('paint');if(!b)return;let i=0;try{i=+localStorage.getItem('ss3d_vcol')||0}catch(e){}CARS[0].col=V[i%V.length];b.onclick=()=>{i=(i+1)%V.length;CARS[0].col=V[i];try{localStorage.setItem('ss3d_vcol',String(i))}catch(e){}this.pick(this.sel)};if(this.sel===0)this.pick(0)}
  onLap(){if(this.lap===1){this.lapStart=this.raceT;this.rec=[];this.recT=0;this.popup('اللفة 1 من '+LAPS);return}
-  const lt=this.raceT-this.lapStart;this.lapStart=this.raceT;this.last3=lt;
+  const lt=this.raceT-this.lapStart;this.lapStart=this.raceT;this.last3=lt;if(this.daily&&this.mode==='trial'&&this.sel===0&&this.trk===this.dTrack())this.dailyDone(lt);
  if(this.mode==='trial'&&(this.best==null||lt<=this.best)&&this.rec.length>10&&this.rec.length<1500){try{localStorage.setItem('ss3d_ghost_'+this.kid(CARS[this.sel].id),JSON.stringify({s:this.rec}))}catch(e){}}
  if(this.best==null||lt<this.best)this.best=lt;this.rec=[];this.recT=0;if(this.lap<=LAPS)this.popup('اللفة '+(this.lap-1)+': '+fmt(lt)+(lt<=this.best?'  أسرع لفة':''));
   if(this.lap>LAPS&&this.state==='RACING'){this.state='FIN';this.fin=3;this.finT=this.raceT;this.finPos=this.pos}}

@@ -147,6 +147,8 @@ body.rain #rainfx{display:block}
 .lbname .btn{flex:0 0 auto;width:auto;max-width:none;padding:0 20px}.lbname input{flex:1 1 auto;width:0}
 .seg.trk{display:grid;grid-template-columns:1fr 1fr;gap:6px}.seg.trk button{min-height:42px}
 #dList{margin:8px 0 10px}#dInfo{margin-bottom:6px}
+
+body.low #rainfx{display:none!important}body.low #lines{display:none}
 </style></head>
 <body>
 <canvas id="cv"></canvas>
@@ -200,6 +202,7 @@ body.rain #rainfx{display:block}
     <label class="sw"><span>ABS للفرامل</span><input type="checkbox" id="oAbs"></label>
     <label class="sw"><span>تحكم في الانزلاق TCS</span><input type="checkbox" id="oTcs"></label>
     <label class="sw"><span>مساعد التوجيه</span><input type="checkbox" id="oSa"></label>
+    <label class="sw"><span>وضع الأجهزة الضعيفة (رسومات أقل)</span><input type="checkbox" id="oLow"></label>
     <label class="sw tiltrow"><span>توجيه بإمالة الجوال</span><input type="checkbox" id="oTilt"></label>
     <label class="sw tiltrow"><span>عكس اتجاه الإمالة</span><input type="checkbox" id="oInv"></label></details>
    <details class="card help-kb"><summary>التحكم</summary>
@@ -758,7 +761,7 @@ const PRICE={verna:0,taxi:450,fiat:950,micro:1500,empow:2200,amg:4500,m4:7000,p9
 const fmt=t=>{if(t==null||!isFinite(t))return '--:--.-';const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(1)};
 class Game{
  constructor(){this.audio=new S.AudioEngine();this.lobby=new S.LobbyManager(new S.NetworkBridge());this.trk=(()=>{let k='city';try{k=localStorage.getItem('ss3d_track')||'city'}catch(e){}return TRACKS.some(t=>t.id===k)?k:'city'})();this.tk=new Track(TRACKS.find(t=>t.id===this.trk).pts,3.5);
-  const DO={man:false,abs:true,tcs:true,sa:true,tilt:false,inv:false};try{this.opt=Object.assign({},DO,JSON.parse(localStorage.getItem('ss3d_opt')||'{}'))}catch(e){this.opt=Object.assign({},DO)}this.tilt=0;this.ft=16.7;this.fc=-150;
+  const DO={man:false,abs:true,tcs:true,sa:true,tilt:false,inv:false,low:false};try{this.opt=Object.assign({},DO,JSON.parse(localStorage.getItem('ss3d_opt')||'{}'))}catch(e){this.opt=Object.assign({},DO)}this.tilt=0;this.ft=16.7;this.fc=-150;
   this.keys={};this.inp={steer:0,thr:0,brk:0,hb:0};this.sel=0;this.mode='race';this.atm='morning';this.state='MENU';this.paused=false;this.t=0;this.acc=0;this.view=0;this.hl=true;this.bump=0;this.ch=0;this.txt={};this.ai=[];this.cache={};this.mf=0;
   this.coarse=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;document.body.classList.toggle('touch',this.coarse);
  this.coins=0;this.own={verna:1};try{this.coins=+localStorage.getItem('ss3d_coins')||0;this.own=Object.assign({verna:1},JSON.parse(localStorage.getItem('ss3d_own')||'{}'))}catch(e){}
@@ -766,7 +769,7 @@ class Game{
   this.cells=[];for(let i=0;i<10;i++){const e=document.createElement('i');$('trb').appendChild(e);this.cells.push(e)}
   this.dots=CARS.map(()=>{const e=document.createElement('i');$('dots').appendChild(e);return e});
   try{this.world=new S.World($('cv'),null,this.tk,this.trk);this.prev=new S.Preview($('pv'));this.fx={skid:new S.Skids(this.world.scene),smoke:new S.Smoke(this.world.scene)}}catch(e){console.error(e);this.world=null;$('err').hidden=false;$('err').textContent=window.THREE?'تعذّر تشغيل الرسم ثلاثي الأبعاد على هذا الجهاز أو المتصفح.':'تعذّر تحميل محرك الرسم ثلاثي الأبعاد. اتأكد من الاتصال بالإنترنت وأعد تحميل الصفحة.';$('go').disabled=true}
-  this.initChase();this.bind();this.initDaily();this.initTracks();this.initCareer();this.initUp();this.pick(0);this.setAtm(0);$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
+  this.initChase();this.bind();this.applyLow();this.initDaily();this.initTracks();this.initCareer();this.initUp();this.pick(0);this.setAtm(0);$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
  bind(){const A=(s,f)=>document.querySelectorAll(s).forEach(f);
   addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;this.audio.init();const k=KM[e.code];if(k){this.keys[k]=true;e.preventDefault();return}
    switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyN':this.setAtm(1);break;case'KeyC':this.view^=1;break;case'KeyT':this.recover();break;
@@ -775,9 +778,9 @@ class Game{
   document.addEventListener('visibilitychange',()=>{if(document.hidden)this.pause()});
   A('#touch [data-k]',b=>{const k=b.dataset.k,up=()=>{b.classList.remove('dn');this.keys[k]=false};
    b.addEventListener('pointerdown',e=>{e.preventDefault();this.audio.init();b.classList.add('dn');if(k==='su'&&this.pl)this.pl.shift(1);if(k==='sd'&&this.pl)this.pl.shift(-1);this.keys[k]=true});['pointerup','pointercancel','pointerleave'].forEach(n=>b.addEventListener(n,up));b.addEventListener('contextmenu',e=>e.preventDefault())});
-  const OPT=[['oMan','man'],['oAbs','abs'],['oTcs','tcs'],['oSa','sa'],['oTilt','tilt'],['oInv','inv']];
+  const OPT=[['oMan','man'],['oAbs','abs'],['oTcs','tcs'],['oSa','sa'],['oTilt','tilt'],['oInv','inv'],['oLow','low']];
   for(const[id,k]of OPT){const e=$(id);e.checked=!!this.opt[k];e.onchange=()=>{this.opt[k]=e.checked;try{localStorage.setItem('ss3d_opt',JSON.stringify(this.opt))}catch(x){}
-   if(k==='tilt'&&e.checked)this.enableTilt();if(this.pl)this.pl.opt=this.opt;this.shiftUi()}}
+   if(k==='tilt'&&e.checked)this.enableTilt();if(k==='low')this.applyLow();if(this.pl)this.pl.opt=this.opt;this.shiftUi()}}
   $('pr').onclick=()=>this.pick(this.sel-1);$('nx').onclick=()=>this.pick(this.sel+1);
   A('#modes .mode',b=>b.onclick=()=>{const m=b.dataset.m;this.night=m==='night';this.chase=m==='chase';this.daily=0;this.mode=(this.night||this.chase)?'race':m;$('modeNote').textContent=this.night?NOTE.night:this.chase?NOTE.chase:NOTE[this.mode];A('#modes .mode',x=>x.classList.toggle('on',x===b))});
   A('#tabs button',b=>b.onclick=()=>{A('#tabs button',x=>x.classList.toggle('on',x===b));$('tRace').hidden=b.dataset.t!=='tRace';$('tLobby').hidden=b.dataset.t!=='tLobby'});
@@ -808,7 +811,7 @@ class Game{
    const key=this.chase?'pol'+d.id:base.id;this.cache[key]=this.cache[key]||(this.chase?tk.profile(d.vt*.99,d.mu*.97,d.aa*1.4,8):tk.profile(base.vt*.98,base.mu*.95,base.aa*1.4,8));
    const a={def,car:S.makeCar(def,false),prof:this.cache[key],pol:this.chase?1:0,s:this.chase?tk.len-55-k*9:tk.len-12-k*9,d:lanes[k%2],lane:lanes[k%2]*(.4+Math.random()*.8),v:0,lap:0,skill:Math.min(.99,.86+Math.random()*.12+(this.career?(this.carD().season-1)*.015:0)),veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};
    this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);if(this.chase)this.siren(a);this.ai.push(a)}
-  for(let k=0;k<6;k++){const base=CARS[(k*3+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=PAL[k%PAL.length];const tv=14+Math.random()*6,ln=(k%2?1:-1)*3.4+(Math.random()-.5)*1.6,s0=150+(tk.len-330)*(k+.5)/6;
+  for(let k=0;k<(this.opt.low?3:6);k++){const base=CARS[(k*3+1)%4],def=Object.assign({},base);if(base.id!=='taxi')def.col=PAL[k%PAL.length];const tv=14+Math.random()*6,ln=(k%2?1:-1)*3.4+(Math.random()-.5)*1.6,s0=150+(tk.len-330)*(k+.5)/(this.opt.low?3:6);
    const a={tr:1,tv,def,car:S.makeCar(def,false),prof:null,s:s0,d:ln,lane:ln,v:tv,lap:0,skill:1,veh:{x:0,z:0,h:0,ax:0,ay:0,vx:0,dl:0,brk:0}};this.place(a.veh,a.s,a.d);w.scene.add(a.car.g);this.ai.push(a)}}this.mkItems();this.pa={s:0,d:0,v:0};this.all=this.ai.concat([this.pa]);
   this.loc=tk.locate(this.pl.x,this.pl.z);this.ps=this.loc.sf*tk.ds;this.lap=0;this.lapStart=0;this.best=null;this.last3=null;this.fin=0;this.pos=1;this.maxV=0;this.raceT=0;this.cd=3;this.tot=1;this.state='COUNT';this.paused=false;this.acc=0;this.bump=0;this.ch=this.pl.h;this.keys={};
   this.maxV=0;this.drift=0;this.driftNext=100;this.nearT=0;this.rec=[];this.recT=0;this.mapP=null;this.setGhost();
@@ -841,7 +844,7 @@ class Game{
  dLocal(){let l=null;try{l=JSON.parse(localStorage.getItem('ss3d_daily')||'null')}catch(e){}return l&&l.day===this.misDay()?l:null}
  dailyDone(lt){const day=this.misDay(),l=this.dLocal();if(l&&lt>=l.best)return;try{localStorage.setItem('ss3d_daily',JSON.stringify({day,best:lt}))}catch(e){}this.popup('أحسن لفة النهاردة '+fmt(lt));if(S.lb&&S.lb.dailySend)S.lb.dailySend(day,lt).then(ok=>{if(ok){this.popup('اتسجلت في لوحة اليوم');this.dailyUi()}}).catch(()=>{})}
  dailyUi(){const i=$('dInfo'),L=$('dList');if(!i)return;const day=this.misDay(),df=TRACKS.find(t=>t.id===this.dTrack()),l=this.dLocal();i.textContent='حلبة النهاردة: '+df.n+' | أحسن لفة ليك: '+(l?fmt(l.best):'--');
-  if(!S.lb||!S.lb.dailyTop){L.textContent='';return}S.lb.dailyTop(day).then(r=>{L.textContent='';r.rows.forEach((x,k)=>{const row=document.createElement('div');row.className='lbrow'+(x.id.slice(-28)===r.uid?' me':'');const a=document.createElement('span');a.textContent=(k+1)+'. '+String(x.name||'').slice(0,16);const b=document.createElement('b');b.textContent=fmt(x.best);row.append(a,b);L.appendChild(row)});if(!r.rows.length)L.textContent='لسه محدش جرّب. كن الأول!'}).catch(()=>{L.textContent='اللوحة مش متاحة دلوقتي (أوفلاين).'})}
+  if(!S.lb||!S.lb.dailyTop){L.textContent='';return}S.lb.dailyTop(day).then(r=>{L.textContent='';r.rows.forEach((x,k)=>{const row=document.createElement('div');row.className='lbrow'+(x.id.slice(-28)===r.uid?' me':'');const a=document.createElement('span');a.textContent=(k+1)+'. '+String(x.name||'').slice(0,16);const b=document.createElement('b');b.textContent=fmt(x.best);row.append(a,b);L.appendChild(row)});if(!r.rows.length)L.textContent='لسه محدش جرّب. كن الأول!'}).catch(()=>{L.textContent='اللوحة مش متاحة دلوقتي (أوفلاين).';if(!this._dr){this._dr=1;setTimeout(()=>this.dailyUi(),7000)}})}
  initCareer(){const m=document.querySelector('.modes-card');if(!m||$('carCard'))return;const c=document.createElement('div');c.className='card';c.id='carCard';c.innerHTML='<h2>المسيرة</h2><div id="carInfo"></div><button class="btn primary" id="carGo">ابدأ الجولة</button>';m.parentNode.insertBefore(c,m);
   $('carGo').onclick=()=>{this.audio.init();const d=this.carD();this.career=1;const rb=document.querySelector('#modes [data-m=race]');if(rb)rb.click();this.useTrack(CAREER[d.round],true);this.start()};this.carUi()}
  carFinish(){const d=this.carD(),p=this.finPos;const pt=CPTS[p-1]||0;d.pts[d.round]=pt;let msg='المسيرة: +'+pt+' نقطة';d.unlocked=Math.max(d.unlocked,Math.min(3,d.round+1));
@@ -938,7 +941,7 @@ class Game{
  draw(dt){this.wheelStep(dt);const w=this.world,p=this.pl,c=w.cam,sp=p.speed,wv=p.wv(),d=p.d;
   S.updCar(this.pcar,p,dt,w.night);for(const a of this.ai)S.updCar(a.car,a.veh,dt,w.night);
   const fxp=this.fx;if(fxp&&!this.paused&&this.state!=='COUNT'&&this.state!=='OVER'){const sn=Math.sin(p.h),cs=Math.cos(p.h),zc=d.L/2,slipOn=(p.slip>.12&&sp>6)||(p.lock&&sp>3)||(p.thr>.9&&sp<8&&d.rwd&&p.vx>.5);
-   for(let i=0;i<4;i++){const lx=(i&1?1:-1)*.72,lz=i<2?-zc:zc,wx=p.x+lx*cs+lz*sn,wz=p.z-lx*sn+lz*cs,rear=i<2,on=slipOn&&(rear||p.lock||p.slip>.2);fxp.skid.add(i,wx,wz,on);if(on&&rear&&(this.mf&1)===0)fxp.smoke.emit(wx,wz,-wv[0],-wv[1],Math.min(.5,.18+p.slip))}
+   for(let i=0;i<4;i++){const lx=(i&1?1:-1)*.72,lz=i<2?-zc:zc,wx=p.x+lx*cs+lz*sn,wz=p.z-lx*sn+lz*cs,rear=i<2,on=slipOn&&(rear||p.lock||p.slip>.2);fxp.skid.add(i,wx,wz,on);if(on&&rear&&!this.opt.low&&(this.mf&1)===0)fxp.smoke.emit(wx,wz,-wv[0],-wv[1],Math.min(.5,.18+p.slip))}
    fxp.smoke.update(dt)}
   let ah=p.h;if(sp>5){ah=p.h+cl(wrap(Math.atan2(wv[0],wv[1])-p.h),-.6,.6)*.4}this.ch+=wrap(ah-this.ch)*(1-Math.exp(-7*dt));const sn=Math.sin(this.ch),cs=Math.cos(this.ch);let px,py,pz,lx,ly,lz,fov;
   if(this.view===0){const dist=5.5+sp*.011;px=p.x-sn*dist;pz=p.z-cs*dist;py=1.8+sp*.003;lx=p.x+sn*8;lz=p.z+cs*8;ly=1.1;fov=58+Math.min(34,sp*.62)}
@@ -952,7 +955,8 @@ class Game{
   const n=Math.round(p.rpm/d.rl*10);this.cells.forEach((e,i)=>e.classList.toggle('on',i<n));$('chs').style.width=(100-p.dmg)+'%';
   this.set('scr',this.mode==='race'?this.pos+'/'+this.tot:'--');this.set('cmb',Math.min(Math.max(this.lap,1),LAPS)+'/'+LAPS);this.set('tm',fmt(this.lap>=1?(this.state==='FIN'?this.finT-this.lapStart:this.raceT-this.lapStart):0));
   this.audio.atm=this.atm;if(!this.paused&&this.state!=='OVER')this.audio.update(p.rpm/d.rl,p.slip>.14&&sp>4,true,p.thr)}
- speedLines(sp){const c=$('lines');if(!c)return;const w=innerWidth,h=innerHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+ applyLow(){const low=!!this.opt.low,w=this.world;document.body.classList.toggle('low',low);if(!w)return;if(!w.pr0)w.pr0=w.prMax;w.prMax=low?Math.min(.75,w.pr0):w.pr0;w.setPR(low?Math.min(w.pr,w.prMax):w.prMax);if(w.sun)w.sun.castShadow=!low}
+ speedLines(sp){const c=$('lines');if(!c)return;if(this.opt.low){if(!this.lcl){this.lcl=1;c.getContext('2d').clearRect(0,0,c.width,c.height)}return}this.lcl=0;const w=innerWidth,h=innerHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h}
  const x=c.getContext('2d');x.clearRect(0,0,w,h);const k=(sp-19)/26;if(k<=0)return;
  x.strokeStyle='rgba(255,255,255,'+Math.min(.5,k*.6).toFixed(3)+')';x.lineWidth=2;const cx=w/2,cy=h/2;
  for(let i=0;i<22;i++){const a=Math.random()*6.283,r0=Math.min(w,h)*(.32+Math.random()*.12),r1=r0+25+k*90*Math.random();

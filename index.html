@@ -413,6 +413,15 @@ S.SPECS={
 (function(S){'use strict';
 // All sounds are synthesized with the Web Audio API. No external audio files,
 // so nothing here needs a license or a credit line.
+const PROF={
+verna:{b:52,s:235,m:[1,.5,2.01],t:['sawtooth','square','sawtooth'],f:1,g:1,w:[37,.004]},
+taxi:{b:46,s:200,m:[1,.5,1.99],t:['square','square','sawtooth'],f:.75,g:1.05,w:[29,.012]},
+micro:{b:38,s:165,m:[1,.5,1.5],t:['sawtooth','square','square'],f:.65,g:1.15,w:[23,.01]},
+fiat:{b:60,s:270,m:[1,.5,2.01],t:['sawtooth','sawtooth','sawtooth'],f:1.25,g:.95,w:[47,.006]},
+empow:{b:56,s:235,m:[1,.5,3],t:['sawtooth','sine','sawtooth'],f:1.1,g:.95,w:[41,.002]},
+amg:{b:33,s:150,m:[1,.5,1.5],t:['sawtooth','square','sawtooth'],f:1.2,g:1.3,w:[19,.018]},
+m4:{b:43,s:190,m:[1,.5,2.5],t:['sawtooth','sawtooth','square'],f:1.35,g:1.15,w:[31,.008]},
+p911:{b:62,s:310,m:[1,.5,2.02],t:['sawtooth','sawtooth','square'],f:1.6,g:1.1,w:[53,.005]}};
 class AudioEngine{
  constructor(){this.ctx=null;this.muted=false;this.pThr=0;this.crk=0}
  init(){try{if(this.ctx){if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});return}
@@ -443,10 +452,11 @@ class AudioEngine{
  amb(atm,on){const c=this.ctx;if(!c)return;this.ambInit();const t=c.currentTime,A=this.A,w=on?{rain:atm==='rain'?.07:0,wind:atm==='fog'?.05:.018,city:atm==='night'?.02:.035,cri:atm==='night'?.012:0}:{rain:0,wind:0,city:0,cri:0};
  for(const k in w)A[k].gain.setTargetAtTime(w[k],t,.6)}
  update(pct,drift,on,thr){const c=this.ctx;if(!c)return;const t=c.currentTime;this.amb(this.atm,on);pct=Math.max(0,Math.min(1,pct||0));thr=thr||0;
- const base=52+pct*235,load=on?(.35+thr*.65):0;
- for(let i=0;i<3;i++){const o=this.eo[i].o,mult=i===0?1:i===1?.5:2.01;o.frequency.setTargetAtTime(base*mult*(1+Math.sin(t*37+i)*.004),t,.03)}
- this.ef.frequency.setTargetAtTime(280+pct*900+thr*1400,t,.05);
- this.eg.gain.setTargetAtTime(on?(.06+pct*.05+thr*.09)*1:0,t,.06);
+ const P=PROF[this.prof]||PROF.verna;if(this._pk!==this.prof){this._pk=this.prof;for(let i=0;i<3;i++)this.eo[i].o.type=P.t[i]}
+ const base=P.b+pct*P.s,load=on?(.35+thr*.65):0;
+ for(let i=0;i<3;i++){const o=this.eo[i].o;o.frequency.setTargetAtTime(base*P.m[i]*(1+Math.sin(t*P.w[0]+i)*P.w[1]),t,.03)}
+ this.ef.frequency.setTargetAtTime((280+pct*900+thr*1400)*P.f,t,.05);
+ this.eg.gain.setTargetAtTime(on?(.06+pct*.05+thr*.09)*P.g:0,t,.06);
  this.xf.frequency.setTargetAtTime(160+pct*420,t,.05);
  this.xg.gain.setTargetAtTime(on?(.015+thr*.05):0,t,.08);
  this.ng.gain.setTargetAtTime(on&&drift?.13:0,t,.05);
@@ -978,7 +988,7 @@ class Game{
  const sk=Math.max(0,p.vx)*3.6;this.set('spd',String(Math.round(sk)));this.set('gr',p.vx<-.5?'R':(sk<1&&p.thr<.05?'N':String(p.gear+1)));
   const n=Math.round(p.rpm/d.rl*10);this.cells.forEach((e,i)=>e.classList.toggle('on',i<n));$('chs').style.width=(100-p.dmg)+'%';
   this.set('scr',this.mode==='race'?this.pos+'/'+this.tot:'--');this.set('cmb',Math.min(Math.max(this.lap,1),LAPS)+'/'+LAPS);this.set('tm',fmt(this.lap>=1?(this.state==='FIN'?this.finT-this.lapStart:this.raceT-this.lapStart):0));
-  this.audio.atm=this.atm;if(!this.paused&&this.state!=='OVER')this.audio.update(p.rpm/d.rl,p.slip>.14&&sp>4,true,p.thr)}
+  this.audio.prof=d.id;this.audio.atm=this.atm;if(!this.paused&&this.state!=='OVER')this.audio.update(p.rpm/d.rl,p.slip>.14&&sp>4,true,p.thr)}
  applyLow(){const low=!!this.opt.low,w=this.world;document.body.classList.toggle('low',low);if(!w)return;if(!w.pr0)w.pr0=w.prMax;w.prMax=low?Math.min(.75,w.pr0):w.pr0;w.setPR(low?Math.min(w.pr,w.prMax):w.prMax);if(w.sun)w.sun.castShadow=!low}
  speedLines(sp){const c=$('lines');if(!c)return;if(this.opt.low){if(!this.lcl){this.lcl=1;c.getContext('2d').clearRect(0,0,c.width,c.height)}return}this.lcl=0;const w=innerWidth,h=innerHeight;if(c.width!==w||c.height!==h){c.width=w;c.height=h}
  const x=c.getContext('2d');x.clearRect(0,0,w,h);const k=(sp-19)/26;if(k<=0)return;

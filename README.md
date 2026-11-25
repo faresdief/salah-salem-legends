@@ -1,4 +1,6 @@
-# صلاح سالم — سباق الأساطير | Salah Salem: Legends Race
+# طرق مصر | Egypt Roads
+
+> الاسم الجديد للعبة «صلاح سالم: سباق الأساطير» — نفس اللعبة ونفس الرابط، واسم صلاح سالم فضل زي ما هو في الشارع والشخصيات جوه اللعبة. | Renamed from "Salah Salem: Legends Race" — same game, same URL and saves; Salah Salem lives on as the boulevard and in-game characters.
 
 لعبة سباق عربيات مصرية ثلاثية الأبعاد بتشتغل في المتصفح مباشرة (Three.js)، بعربيات زي هيونداي فيرنا وتاكسي القاهرة وميكروباص وفيات 128، ونمط سباق وتجربة زمن، وتحكم كيبورد ولمس وإمالة الموبايل.
 
@@ -7,6 +9,12 @@ An Egyptian 3D browser racing game (Three.js) with locally iconic cars, race and
 **اللعبة مباشرة | Play:** https://faresdief.github.io/salah-salem-legends/
 
 ## الجديد | What's in the game
+
+- **دهان العربيات في الورشة**: غيّر لون أي عربية عندك من الورشة (6 ألوان، 250 جنيه للدهان، والرجوع للأصلي ببلاش) | paint any owned car at the shop (6 colors, 250 EGP, revert free)
+- **مهام يومية**: 3 مهام جديدة كل يوم (مشاوير، أرباح، مشاوير نضيفة، 5 نجوم، توصيل، VIP) بمكافآت فلوس | 3 fresh daily missions with coin rewards
+- **إنجازات**: 8 إنجازات دائمة (عدد المشاوير، الكيلومترات، الأرباح، التقييم، المستوى، الفصول، الترقيات الكاملة) من زرار «مهام» | 8 permanent achievements, viewable from the new «مهام» button
+- **ركاب عطالى وحوادث طريق**: مشوار «عطلان» جديد (راكب جنب عربيته البايظة بأجرة ×1.7)، وحوادث على الطريق بفلاشرات تحذيرية بتتجدد مكانها | new "breakdown" fares (x1.7) and rotating accident scenes with hazard blinkers that you can actually crash into
+- **معالم جديدة**: هضبة الأهرامات في طرف المدينة وكورنيش النيل على النيل غرب المدينة، واتضافوا للجولات السياحية | new Pyramids plateau and Nile corniche landmarks, both part of tour fares
 
 - **إشارات مرور وزحمة ومشاة**: إشارات شغالة على التقاطعات الكبيرة (العربيات بتقف على الأحمر، وعدّيتها عليك غرامة)، وشوارع زحمة أكتر ومشاة على الأرصفة | working traffic lights at the big intersections (AI stops on red, running a red costs a fine), busier streets and sidewalk pedestrians
 - **تقييم الركاب**: كل راكب بيقيّمك من 1 لـ5 نجوم على السواقة (خبطات وتأخير بيقلّلوا)، والتقييم العالي بيزوّد البقشيش | passenger 1-5 star ratings per ride; a high average boosts tips

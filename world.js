@@ -39,9 +39,9 @@ function bodyGeo(key,taxi){const id=key+(taxi?'T':'');if(BODY[id])return BODY[id
  const gg=new T.BufferGeometry();gg.setAttribute('position',new T.BufferAttribute(b.glass.pos,3));gg.setIndex(new T.BufferAttribute(Uint16Array.from(b.glass.idx),1));gg.computeVertexNormals();
  const uv=new Float32Array(b.glass.pos.length/3*2);for(let v=0;v<uv.length/2;v++){uv[v*2]=b.glass.pos[v*3+2]*.55+b.glass.pos[v*3]*.4;uv[v*2+1]=b.glass.pos[v*3+1]*.7}gg.setAttribute('uv',new T.BufferAttribute(uv,2));
  return BODY[id]={g,gg,F:b.F,sp}}
-function makeCar(d,lit){const key=d.shape,taxi=d.id==='taxi',B=bodyGeo(key,taxi),sp=B.sp,F=B.F,g=new T.Group(),bd=new T.Group(),w=d.wid,wr=d.Rw,wheels=[],zf=sp.zf,zr=sp.zr,van=key==='van',fia=key==='boxy';g.add(bd);
+function makeCar(d,lit){const pc=S.paints&&S.paints[d.id],painted=pc!=null;if(painted)d=Object.assign({},d,{col:pc});const key=d.shape,taxi=d.id==='taxi',B=bodyGeo(key,taxi),sp=B.sp,F=B.F,g=new T.Group(),bd=new T.Group(),w=d.wid,wr=d.Rw,wheels=[],zf=sp.zf,zr=sp.zr,van=key==='van',fia=key==='boxy';g.add(bd);
  const mat=(c,m,r)=>new T.MeshStandardMaterial({color:col(c),metalness:m,roughness:r});
- const paint=new T.MeshPhysicalMaterial({color:taxi?0xffffff:col(d.col),vertexColors:taxi,metalness:.22,roughness:.3,clearcoat:1,clearcoatRoughness:.08,envMapIntensity:1.3}),pp=taxi?mat(0x15171a,.3,.4):paint;
+ const paint=new T.MeshPhysicalMaterial({color:taxi&&!painted?0xffffff:col(d.col),vertexColors:taxi,metalness:.22,roughness:.3,clearcoat:1,clearcoatRoughness:.08,envMapIntensity:1.3}),pp=taxi?mat(0x15171a,.3,.4):paint;
  const glassM=new T.MeshStandardMaterial({color:col(0x10161e),metalness:.85,roughness:.05,envMapIntensity:1.9}),dark=mat(0x101113,.2,.75),tire=new T.MeshStandardMaterial({color:col(0x0c0c0d),roughness:.92,side:T.DoubleSide}),rim=mat(0xb9bdc2,.9,.3),chr=mat(0xc8ccd0,1,.2),red=mat(0xb22222,.2,.5),blk=mat(0x111214,.2,.8),white=mat(0xeeeeee,0,.5);
  const geo=lit?B.g.clone():B.g,ggeo=lit?B.gg.clone():B.gg,body=new T.Mesh(geo,paint);body.castShadow=true;bd.add(body);bd.add(new T.Mesh(ggeo,glassM));
  let crack=null;if(lit){crack=new T.Mesh(ggeo,new T.MeshBasicMaterial({map:crackTex(),transparent:true,opacity:.3,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));crack.visible=false;bd.add(crack)}

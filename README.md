@@ -10,6 +10,8 @@ An Egyptian 3D browser racing game (Three.js) with locally iconic cars, race and
 
 ## الجديد | What's in the game
 
+- **القاهرة الحقيقية (تجريبي)** | **Real Cairo (preview)**: نمط جديد بيبني الطرق من بيانات OpenStreetMap الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، والنيل تحت الكوبري، وبرج القاهرة على إحداثياته الحقيقية | a preview mode driving real OSM road geometry: Zamalek, the 6th October Bridge to Downtown, the Nile, and Cairo Tower at its real coordinates
+
 - **دهان العربيات في الورشة**: غيّر لون أي عربية عندك من الورشة (6 ألوان، 250 جنيه للدهان، والرجوع للأصلي ببلاش) | paint any owned car at the shop (6 colors, 250 EGP, revert free)
 - **مهام يومية**: 3 مهام جديدة كل يوم (مشاوير، أرباح، مشاوير نضيفة، 5 نجوم، توصيل، VIP) بمكافآت فلوس | 3 fresh daily missions with coin rewards
 - **إنجازات**: 8 إنجازات دائمة (عدد المشاوير، الكيلومترات، الأرباح، التقييم، المستوى، الفصول، الترقيات الكاملة) من زرار «مهام» | 8 permanent achievements, viewable from the new «مهام» button
@@ -76,3 +78,10 @@ The "demo lobby" tab is a **local-only demo**: it runs in memory inside the open
 
 - اللعبة بتستخدم Three.js r128 من CDN (cdnjs)، والسيرفس وركر بيخزنه للعب الأوفلاين.
 - كل بيانات اللعب (فلوس، عربيات، أرقام قياسية، أشباح) بتتخزن في localStorage على جهازك بس.
+
+## بيانات الخريطة | Map data
+
+نمط «القاهرة الحقيقية» بيستخدم بيانات طرق من OpenStreetMap، متظبطة مرة واحدة ومخزنة كملف ثابت (realmap-data.json) — مفيش أي طلبات لخوادم خارجية أثناء اللعب.
+The Real Cairo mode uses road data from OpenStreetMap, preprocessed once into a static file. No runtime API calls.
+
+© OpenStreetMap contributors, licensed under ODbL 1.0 — https://www.openstreetmap.org/copyright

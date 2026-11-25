@@ -1,11 +1,12 @@
 // Service worker: cache-first for the game shell so it loads offline and fast.
-const CACHE = 'ss-v43';
+const CACHE = 'ss-v44';
 const ASSETS = [
   './',
   'index.html',
   'manifest.webmanifest',
   'icon.svg',
   'og-image.jpg',
+  'realmap-data.json',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 self.addEventListener('install', e => {

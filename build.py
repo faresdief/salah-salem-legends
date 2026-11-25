@@ -2,9 +2,9 @@
 """Rebuild index.html from styles.css and the JS source modules.
 
 index.html is the self-contained page served on GitHub Pages. Its inline
-<style> is styles.css and its 9 inline <script> blocks (excluding the
+<style> is styles.css and its 10 inline <script> blocks (excluding the
 Three.js CDN tag) are, in order:
-  physics.js, carbody.js, carspecs.js, audio.js, world.js, fx.js, network.js, roam.js, race.js
+  physics.js, carbody.js, carspecs.js, audio.js, world.js, fx.js, network.js, roam.js, realmap.js, race.js
 This script re-splices those files into index.html. Run it after editing a
 module or the CSS:
 
@@ -14,7 +14,7 @@ module or the CSS:
 import re, sys
 
 MODULES = ['physics.js', 'carbody.js', 'carspecs.js', 'audio.js',
-           'world.js', 'fx.js', 'network.js', 'roam.js', 'race.js']
+           'world.js', 'fx.js', 'network.js', 'roam.js', 'realmap.js', 'race.js']
 
 html = open('index.html', encoding='utf8').read()
 css = open('styles.css', encoding='utf8').read()

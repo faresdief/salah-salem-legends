@@ -209,7 +209,7 @@ body.low #rainfx{display:none!important}body.low #lines{display:none}
    <details class="card"><summary>حفظ التقدم (نقل لجهاز تاني)</summary>
     <p class="foot">انسخ الكود واحتفظ بيه. على أي جهاز تاني الصقه واضغط استرجاع، وكل فلوسك وعرباتك وتقدمك بيرجعوا.</p>
     <textarea id="saveCode" rows="3" style="width:100%;box-sizing:border-box;margin:8px 0;background:var(--s2);color:inherit;border:1px solid var(--s3);border-radius:10px;padding:8px;font-size:12px;direction:ltr" placeholder="SS1:..."></textarea>
-    <div class="seg"><button class="mode" id="svExp">إنشاء ونسخ الكود</button><button class="mode" id="svImp">استرجاع من كود</button></div></details>
+    <div class="seg"><button class="mode" id="svExp">إنشاء ونسخ الكود</button><button class="mode" id="svCloud">حفظ على السحابة</button><button class="mode" id="svImp">استرجاع من كود</button></div></details>
    <details class="card" id="chCard"><summary>تحدّي صاحبك</summary>
     <p class="foot">بعد أي سباق دوس "تحدّى صاحبك" وابعت الرابط. صاحبك يفتحه أو يلصق الكود هنا، وتتسابقوا على نفس الحلبة والزمن.</p>
     <input id="chCode" type="text" dir="ltr" placeholder="CH1:..." style="width:100%;box-sizing:border-box;margin:8px 0;background:var(--s2);color:inherit;border:1px solid var(--s3);border-radius:10px;padding:10px;font-size:13px">
@@ -793,6 +793,10 @@ S.lb=LB;
 LB.dailySend=async function(day,best){day=day|0;best=Math.round(best*100)/100;if(!(best>=20&&best<=900))return false;const c=await conn(),ref=c.db.collection('daily').doc(day+'_'+c.uid),sn=await ref.get();if(sn.exists&&sn.data().best<=best)return false;
  await ref.set({name:this.name(),day:day,best:best,car:'verna',t:firebase.firestore.FieldValue.serverTimestamp()});return true};
 LB.dailyTop=async function(day){const c=await conn(),s=await c.db.collection('daily').where('day','==',day|0).limit(50).get();const rows=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>a.best-b.best).slice(0,10);return{uid:c.uid,rows}};
+
+LB.cloudSave=async function(code){if(typeof code!=='string'||code.length>60000)throw new Error('size');const c=await conn();let k=ls('ss3d_ckey','');if(!/^[a-z2-7]{16}$/.test(k)){const a=new Uint8Array(16);crypto.getRandomValues(a);k=Array.from(a,x=>'abcdefghijklmnopqrstuvwxyz234567'[x&31]).join('')}
+ await c.db.collection('saves').doc(k).set({d:code,o:c.uid,t:firebase.firestore.FieldValue.serverTimestamp()});lset('ss3d_ckey',k);return k};
+LB.cloudLoad=async function(k){k=String(k||'').trim().toLowerCase();if(!/^[a-z2-7]{16}$/.test(k))return null;const c=await conn(),s=await c.db.collection('saves').doc(k).get();return s.exists&&typeof s.data().d==='string'?s.data().d:null};
 function ui(){const side=document.querySelector('#menu .side');if(!side||document.getElementById('lbCard'))return;
  const c=document.createElement('div');c.className='card';c.id='lbCard';
  c.innerHTML='<h2>لوحة الشرف</h2><div class="lbname"><input id="lbName" maxlength="16" aria-label="اسمك" autocomplete="off"><button class="btn tint" id="lbSave">حفظ</button></div><div id="lbList" class="lblist"></div><p class="foot" id="lbNote">نقاطك: <b id="lbPts">0</b></p><button class="btn tint" id="lbRef">تحديث</button>';
@@ -842,15 +846,17 @@ class Game{
   const OPT=[['oMan','man'],['oAbs','abs'],['oTcs','tcs'],['oSa','sa'],['oTilt','tilt'],['oInv','inv'],['oLow','low'],['oRam','ram']];
   for(const[id,k]of OPT){const e=$(id);e.checked=!!this.opt[k];e.onchange=()=>{this.opt[k]=e.checked;try{localStorage.setItem('ss3d_opt',JSON.stringify(this.opt))}catch(x){}
    if(k==='tilt'&&e.checked)this.enableTilt();if(k==='low'||k==='ram')this.applyLow();if(k==='ram'&&e.checked)this.popup('رمضان كريم');if(this.pl)this.pl.opt=this.opt;this.shiftUi()}}
- {const ta=$('saveCode'),eb=$('svExp'),ib=$('svImp');
-  if(eb)eb.onclick=()=>{try{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('ss3d_')===0&&k.indexOf('ss3d_ghost_')!==0)o[k]=localStorage.getItem(k)}
-   const c='SS1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));ta.value=c;ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(x){}try{navigator.clipboard&&navigator.clipboard.writeText(c).catch(()=>{})}catch(x){}this.popup(ok?'تم نسخ الكود':'الكود جاهز، انسخه')}catch(x){this.popup('تعذر إنشاء الكود')}};
+ {const ta=$('saveCode'),eb=$('svExp'),ib=$('svImp'),cb=$('svCloud');
+  const mk=()=>{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('ss3d_')===0&&k.indexOf('ss3d_ghost_')!==0)o[k]=localStorage.getItem(k)}return 'SS1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))))};
+  const apply=c=>{c=(c||'').trim();if(c.indexOf('SS1:')!==0||c.length>200000){this.popup('الكود غير صحيح');return}
+   const o=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))));let n=0;for(const k in o){if(k.indexOf('ss3d_')===0&&k.indexOf('ss3d_ghost_')!==0&&typeof o[k]==='string'&&o[k].length<100000){localStorage.setItem(k,o[k]);n++}}
+   if(!n){this.popup('الكود فاضي');return}this.popup('تم الاسترجاع');setTimeout(()=>location.reload(),900)};
+  if(eb)eb.onclick=()=>{try{const c=mk();ta.value=c;ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(x){}try{navigator.clipboard&&navigator.clipboard.writeText(c).catch(()=>{})}catch(x){}this.popup(ok?'تم نسخ الكود':'الكود جاهز، انسخه')}catch(x){this.popup('تعذر إنشاء الكود')}};
+  if(cb)cb.onclick=async()=>{try{if(!S.lb||!S.lb.cloudSave){this.popup('السحابة مش متاحة');return}this.popup('بحفظ على السحابة...');const k=await S.lb.cloudSave(mk());ta.value='CL1:'+k;ta.select();try{navigator.clipboard&&navigator.clipboard.writeText('CL1:'+k).catch(()=>{})}catch(x){}this.popup('اتحفظ. احتفظ بكود السحابة')}catch(x){this.popup('تعذر الحفظ على السحابة، استخدم الكود العادي')}};
   const cg=$('chGo'),sh=$('chShare');
   if(cg)cg.onclick=()=>{const o=this.chalParse($('chCode').value);if(!o){this.popup('الكود غير صحيح');return}this.chalStart(o)};
   if(sh)sh.onclick=()=>{const b=this.best;if(b==null){this.popup('خلّص لفة الأول');return}const o={t:this.trk,c:CARS[this.sel].id,b:Math.round(b*100)/100},code='CH1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))),url=location.origin+location.pathname+'?ch='+encodeURIComponent(code),txt='عملت '+o.b.toFixed(2)+' ث في سلة سالم، تقدر تهزمني؟';try{if(navigator.share){navigator.share({title:'تحدي سلة سالم',text:txt,url}).catch(()=>{});return}}catch(x){}try{navigator.clipboard.writeText(txt+' '+url).catch(()=>{})}catch(x){}this.popup('اتنسخ رابط التحدي')};
-  if(ib)ib.onclick=()=>{try{let c=(ta.value||'').trim();if(c.indexOf('SS1:')!==0||c.length>200000){this.popup('الكود غير صحيح');return}
-   const o=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))));let n=0;for(const k in o){if(k.indexOf('ss3d_')===0&&k.indexOf('ss3d_ghost_')!==0&&typeof o[k]==='string'&&o[k].length<100000){localStorage.setItem(k,o[k]);n++}}
-   if(!n){this.popup('الكود فاضي');return}this.popup('تم الاسترجاع');setTimeout(()=>location.reload(),900)}catch(x){this.popup('الكود غير صحيح')}}}
+  if(ib)ib.onclick=async()=>{try{let c=(ta.value||'').trim();if(c.indexOf('CL1:')===0){if(!S.lb||!S.lb.cloudLoad){this.popup('السحابة مش متاحة');return}this.popup('بجيب من السحابة...');c=await S.lb.cloudLoad(c.slice(4));if(!c){this.popup('كود السحابة مش موجود');return}}apply(c)}catch(x){this.popup('الكود غير صحيح')}}}
   $('pr').onclick=()=>this.pick(this.sel-1);$('nx').onclick=()=>this.pick(this.sel+1);
   A('#modes .mode',b=>b.onclick=()=>{const m=b.dataset.m;this.night=m==='night';this.chase=m==='chase';this.daily=0;this.mode=(this.night||this.chase)?'race':m;$('modeNote').textContent=this.night?NOTE.night:this.chase?NOTE.chase:NOTE[this.mode];A('#modes .mode',x=>x.classList.toggle('on',x===b))});
   A('#tabs button',b=>b.onclick=()=>{A('#tabs button',x=>x.classList.toggle('on',x===b));$('tRace').hidden=b.dataset.t!=='tRace';$('tLobby').hidden=b.dataset.t!=='tLobby'});

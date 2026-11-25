@@ -59,6 +59,7 @@ class AudioEngine{
  coin(){this.tone(988,.08,'square',.06);this.tone(1319,.2,'square',.06,.08)}
  flash(){this.tone(2200,.12,'triangle',.08)}
  unlock(){this.tone(660,.1,'square',.07);this.tone(880,.1,'square',.07,.1);this.tone(1320,.22,'square',.07,.2)}
+ music(st){const c=this.ctx;if(!c)return;if(this.mtm){clearInterval(this.mtm);this.mtm=null}if(!st)return;let i=0;const sc=st===1?[0,3,5,7,10,12,10,7]:[0,4,7,12,7,4],base=st===1?220:262,tp=st===1?'triangle':'square';this.mtm=setInterval(()=>{if(this.muted)return;const n=sc[i%sc.length];i++;this.tone(base*Math.pow(2,n/12),.24,tp,.045);if(i%2===0)this.tone(base/4,.32,'sine',.05)},290)}
  mute(){this.muted=!this.muted;if(this.m)this.m.gain.value=this.muted?0:.55;return this.muted}
 }
 S.AudioEngine=AudioEngine;})(window.SS);

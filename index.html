@@ -210,6 +210,10 @@ body.low #rainfx{display:none!important}body.low #lines{display:none}
     <p class="foot">انسخ الكود واحتفظ بيه. على أي جهاز تاني الصقه واضغط استرجاع، وكل فلوسك وعرباتك وتقدمك بيرجعوا.</p>
     <textarea id="saveCode" rows="3" style="width:100%;box-sizing:border-box;margin:8px 0;background:var(--s2);color:inherit;border:1px solid var(--s3);border-radius:10px;padding:8px;font-size:12px;direction:ltr" placeholder="SS1:..."></textarea>
     <div class="seg"><button class="mode" id="svExp">إنشاء ونسخ الكود</button><button class="mode" id="svImp">استرجاع من كود</button></div></details>
+   <details class="card" id="chCard"><summary>تحدّي صاحبك</summary>
+    <p class="foot">بعد أي سباق دوس "تحدّى صاحبك" وابعت الرابط. صاحبك يفتحه أو يلصق الكود هنا، وتتسابقوا على نفس الحلبة والزمن.</p>
+    <input id="chCode" type="text" dir="ltr" placeholder="CH1:..." style="width:100%;box-sizing:border-box;margin:8px 0;background:var(--s2);color:inherit;border:1px solid var(--s3);border-radius:10px;padding:10px;font-size:13px">
+    <div class="seg"><button class="mode" id="chGo">ابدأ التحدي</button></div><p class="foot" id="chNote"></p></details>
    <details class="card help-kb"><summary>التحكم</summary>
     <div class="kv"><span>بنزين / فرامل</span><span><kbd>W</kbd> <kbd>S</kbd> أو الأسهم</span></div>
     <div class="kv"><span>توجيه</span><span><kbd>A</kbd> <kbd>D</kbd> أو الأسهم</span></div>
@@ -234,7 +238,7 @@ body.low #rainfx{display:none!important}body.low #lines{display:none}
 <section id="over" class="sheet" hidden><div class="card"><h3>انتهى السباق</h3>
  <small class="cen" id="oL">المركز النهائي</small><div class="big" id="oS">1/6</div><span class="tagn" id="oNew" hidden>رقم قياسي جديد</span>
  <div class="rows"><div class="r"><span>الزمن الكلي</span><b id="oD"></b></div><div class="r"><span>أسرع لفة</span><b id="oN"></b></div><div class="r"><span>أعلى سرعة</span><b id="oC"></b></div><div class="r"><span>الأضرار</span><b id="oT"></b></div><div class="r"><span>فلوس مكتسبة</span><b id="oCoins"></b></div><div class="r"><span>أفضل لفة مسجلة</span><b id="oH"></b></div></div>
- <small class="cen">مهام اليوم</small><div class="rows" id="oMis"></div><button class="btn tint" id="share">شارك نتيجتك</button><button class="btn primary" id="again">العب تاني</button><button class="btn tint" id="toMenu2">القائمة الرئيسية</button></div></section>
+ <small class="cen">مهام اليوم</small><div class="rows" id="oMis"></div><button class="btn tint" id="share">شارك نتيجتك</button><button class="btn tint" id="chShare">تحدّى صاحبك</button><button class="btn primary" id="again">العب تاني</button><button class="btn tint" id="toMenu2">القائمة الرئيسية</button></div></section>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(S){'use strict';
@@ -813,7 +817,7 @@ class Game{
   this.cells=[];for(let i=0;i<10;i++){const e=document.createElement('i');$('trb').appendChild(e);this.cells.push(e)}
   this.dots=CARS.map(()=>{const e=document.createElement('i');$('dots').appendChild(e);return e});
   try{this.world=new S.World($('cv'),null,this.tk,this.trk);this.prev=new S.Preview($('pv'));this.fx={skid:new S.Skids(this.world.scene),smoke:new S.Smoke(this.world.scene)}}catch(e){console.error(e);this.world=null;$('err').hidden=false;$('err').textContent=window.THREE?'تعذّر تشغيل الرسم ثلاثي الأبعاد على هذا الجهاز أو المتصفح.':'تعذّر تحميل محرك الرسم ثلاثي الأبعاد. اتأكد من الاتصال بالإنترنت وأعد تحميل الصفحة.';$('go').disabled=true}
-  this.initChase();this.bind();this.applyLow();this.initDaily();this.initTracks();this.initCareer();this.initUp();this.pick(0);this.setAtm(0);$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
+  this.initChase();this.bind();this.applyLow();this.initDaily();this.initTracks();this.initCareer();this.initUp();this.pick(0);this.setAtm(0);this.chalFromUrl();$('modeNote').textContent=NOTE.race;this.last=performance.now();requestAnimationFrame(t=>this.loop(t))}
  bind(){const A=(s,f)=>document.querySelectorAll(s).forEach(f);
   addEventListener('keydown',e=>{if(e.target&&e.target.tagName==='INPUT')return;this.audio.init();const k=KM[e.code];if(k){this.keys[k]=true;e.preventDefault();return}
    switch(e.code){case'KeyH':this.audio.horn();break;case'KeyL':this.hl=!this.hl;$('bLight').classList.toggle('on',this.hl);break;case'KeyM':this.toggleM();break;case'KeyN':this.setAtm(1);break;case'KeyC':this.view^=1;break;case'KeyT':this.recover();break;
@@ -828,6 +832,9 @@ class Game{
  {const ta=$('saveCode'),eb=$('svExp'),ib=$('svImp');
   if(eb)eb.onclick=()=>{try{const o={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('ss3d_')===0&&k.indexOf('ss3d_ghost_')!==0)o[k]=localStorage.getItem(k)}
    const c='SS1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));ta.value=c;ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(x){}try{navigator.clipboard&&navigator.clipboard.writeText(c).catch(()=>{})}catch(x){}this.popup(ok?'تم نسخ الكود':'الكود جاهز، انسخه')}catch(x){this.popup('تعذر إنشاء الكود')}};
+  const cg=$('chGo'),sh=$('chShare');
+  if(cg)cg.onclick=()=>{const o=this.chalParse($('chCode').value);if(!o){this.popup('الكود غير صحيح');return}this.chalStart(o)};
+  if(sh)sh.onclick=()=>{const b=this.best;if(b==null){this.popup('خلّص لفة الأول');return}const o={t:this.trk,c:CARS[this.sel].id,b:Math.round(b*100)/100},code='CH1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o)))),url=location.origin+location.pathname+'?ch='+encodeURIComponent(code),txt='عملت '+o.b.toFixed(2)+' ث في سلة سالم، تقدر تهزمني؟';try{if(navigator.share){navigator.share({title:'تحدي سلة سالم',text:txt,url}).catch(()=>{});return}}catch(x){}try{navigator.clipboard.writeText(txt+' '+url).catch(()=>{})}catch(x){}this.popup('اتنسخ رابط التحدي')};
   if(ib)ib.onclick=()=>{try{let c=(ta.value||'').trim();if(c.indexOf('SS1:')!==0||c.length>200000){this.popup('الكود غير صحيح');return}
    const o=JSON.parse(decodeURIComponent(escape(atob(c.slice(4)))));let n=0;for(const k in o){if(k.indexOf('ss3d_')===0&&k.indexOf('ss3d_ghost_')!==0&&typeof o[k]==='string'&&o[k].length<100000){localStorage.setItem(k,o[k]);n++}}
    if(!n){this.popup('الكود فاضي');return}this.popup('تم الاسترجاع');setTimeout(()=>location.reload(),900)}catch(x){this.popup('الكود غير صحيح')}}}
@@ -900,6 +907,10 @@ class Game{
  carFinish(){const d=this.carD(),p=this.finPos;const pt=CPTS[p-1]||0;d.pts[d.round]=pt;let msg='المسيرة: +'+pt+' نقطة';d.unlocked=Math.max(d.unlocked,Math.min(3,d.round+1));
   if(d.round>=3){const tot=d.pts.reduce((a,b)=>a+b,0),bonus=tot>=34?600:tot>=26?350:tot>=16?180:80;msg+=' | خلص الموسم '+d.season+': '+tot+' نقطة، مكافأة '+bonus+' جنيه'+(tot>=34?' (بطل!)':'');if(tot>=34)d.titles++;this.coins+=bonus;this.saveCoins();this.garage();if(S.lb)try{S.lb.add(bonus,CARS[this.sel].name)}catch(e){}d.season++;d.round=0;d.pts=[]}else d.round++;
   this.carSave(d);this.career=0;let e=$('oCar');if(!e){e=document.createElement('small');e.id='oCar';e.className='cen';$('oNew').parentNode.insertBefore(e,$('oNew').nextSibling)}e.textContent=msg;e.hidden=false;this.carUi();this.trkUi()}
+ chalParse(c){try{c=String(c||'').trim();const m=c.match(/CH1:[A-Za-z0-9+\/=]+/);if(!m)return null;const o=JSON.parse(decodeURIComponent(escape(atob(m[0].slice(4)))));if(!TRACKS.some(t=>t.id===o.t)||!CARS.some(x=>x.id===o.c)||!(o.b>5&&o.b<1000))return null;return{t:o.t,c:o.c,b:+o.b}}catch(e){return null}}
+ chalStart(o){this.chal=o;if(this.state==='MENU')this.useTrack(o.t,true);const i=CARS.findIndex(x=>x.id===o.c);let m='';if(i>=0&&this.own[CARS[i].id])this.pick(i);else m=' (العربية دي مش عندك، سابق بعربيتك)';const tn=(TRACKS.find(t=>t.id===o.t)||{}).n||'';const n=$('chNote');if(n)n.textContent='التحدي: اهزم '+o.b.toFixed(2)+' ث على '+tn+m;this.popup('تحدي: '+o.b.toFixed(2)+' ث')}
+ chalFromUrl(){try{const c=new URLSearchParams(location.search).get('ch'),o=this.chalParse(c);if(o)setTimeout(()=>this.chalStart(o),400)}catch(e){}}
+ chalCheck(){const c=this.chal;if(!c||this.best==null||c.t!==this.trk)return;const d=this.best-c.b;this.popup(d<=0?'كسبت التحدي! أسرع بـ '+(-d).toFixed(2)+' ث':'خسرت التحدي بـ '+d.toFixed(2)+' ث')}
  kid(id){return this.trk==='city'?id:id+'@'+this.trk}
  useTrack(id,force){if(id===this.trk||this.state!=='MENU')return;const df=TRACKS.find(t=>t.id===id);if(!df)return;if(!force&&CAREER.indexOf(id)>this.carD().unlocked){this.popup('الحلبة دي بتتفتح في المسيرة');return}this.trk=id;try{localStorage.setItem('ss3d_track',id)}catch(e){}this.tk=new Track(df.pts,3.5);this.cache={};this.mapP=null;if(this.world)this.world.setTrack(this.tk,df.th);this.trkUi()}
  trkUi(){document.querySelectorAll('#tracks .mode').forEach(b=>{b.classList.toggle('on',b.dataset.t===this.trk);const lk=CAREER.indexOf(b.dataset.t)>this.carD().unlocked,t=TRACKS.find(x=>x.id===b.dataset.t);b.textContent=(lk?'🔒 ':'')+t.n;b.style.opacity=lk?.55:1});const df=TRACKS.find(t=>t.id===this.trk),e=$('trkNote');if(e)e.textContent=df.n+' - طول اللفة '+(this.tk.len/1000).toFixed(1)+' كم'}
@@ -985,7 +996,7 @@ class Game{
   if(this.state==='FIN'){this.fin-=dt;if(this.fin<=0)this.finish()}}
  finish(){this.state='OVER';const d=this.pl.d;let rec=false,saved=null;try{const o=JSON.parse(localStorage.getItem('ss3d_best')||'{}');const kk=this.kid(d.id);saved=o[kk]!=null?o[kk]:null;if(this.best!=null&&(saved==null||this.best<saved)){o[kk]=this.best;saved=this.best;rec=true;localStorage.setItem('ss3d_best',JSON.stringify(o))}}catch(e){}
   const race=this.mode==='race';let earn=race?(REWARD[this.finPos-1]||25):(rec?100:40);earn+=Math.min(60,Math.floor(this.drift/60));if(this.night&&race)earn=Math.round(earn*1.5);if(this.chase&&race)earn=this.busted?15:Math.round(earn*1.8)+60;if(S.lb)try{S.lb.add(earn,CARS[this.sel].name)}catch(e){}
- this.coins+=earn;this.saveCoins();this.garage();this.misAdd('finish',1);if(race&&this.finPos===1)this.misAdd('win',1);this.misAdd('drift',Math.floor(this.drift));this.misAdd('speed',Math.round(this.maxV));this.lastShare={race,pos:this.finPos,tot:this.tot,best:this.best,v:Math.round(this.maxV)};this.misRender();$('oCoins').textContent='+'+earn+' جنيه';
+ this.coins+=earn;this.saveCoins();this.garage();this.misAdd('finish',1);if(race&&this.finPos===1)this.misAdd('win',1);this.misAdd('drift',Math.floor(this.drift));this.misAdd('speed',Math.round(this.maxV));this.lastShare={race,pos:this.finPos,tot:this.tot,best:this.best,v:Math.round(this.maxV)};this.chalCheck();this.misRender();$('oCoins').textContent='+'+earn+' جنيه';
  $('oS').textContent=race?this.finPos+'/'+this.tot:fmt(this.finT);$('oNew').hidden=!rec;$('oL').textContent=race?'المركز النهائي':'الزمن الكلي';$('oD').textContent=fmt(this.finT);$('oN').textContent=fmt(this.best);$('oC').textContent=Math.round(this.maxV)+' كم/س';$('oT').textContent=Math.round(this.pl.dmg)+'%';$('oH').textContent=fmt(saved);
   if(this.chase&&this.busted)$('oL').textContent='اتقبض عليك';if($('oCar'))$('oCar').hidden=true;if(this.career&&race)this.carFinish();$('hud').hidden=true;$('touch').hidden=true;$('over').hidden=false;this.audio.update(0,false,false)}
  draw(dt){this.wheelStep(dt);const w=this.world,p=this.pl,c=w.cam,sp=p.speed,wv=p.wv(),d=p.d;

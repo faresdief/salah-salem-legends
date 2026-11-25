@@ -114,7 +114,7 @@ class RealMap{
     const lm3=this.tlL=new T.InstancedMesh(new T.SphereGeometry(.22,8,6),new T.MeshBasicMaterial({color:0xffffff,fog:false}),tl.length);
     tl.forEach((q2,k)=>{o2.position.set(q2[0]+6,2.3,q2[1]+6);o2.updateMatrix();pm3.setMatrixAt(k,o2.matrix);
      o2.position.set(q2[0]+6,4.8,q2[1]+6);o2.updateMatrix();lm3.setMatrixAt(k,o2.matrix);lm3.setColorAt(k,cc.set(k%2?0xff3226:0x2fe06a))});
-    this.tlN=tl.length;sc3.add(pm3,lm3)}}
+    this.tlN=tl.length;this.sig=tl;sc3.add(pm3,lm3)}}
   {const m2=new T.MeshStandardMaterial({color:col(0xcaa877),roughness:.9,emissive:col(0x4a3a20),emissiveIntensity:1.1});
    const pg=new T.Mesh(new T.PlaneGeometry(1100,1100),new T.MeshBasicMaterial({map:S.glowTex(),color:0xffc98a,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.4,fog:false}));pg.rotation.x=-Math.PI/2;pg.position.set(PYX+160,.4,PYZ+10);sc3.add(pg);
    for(const q2 of[[0,0,115,139],[215,-60,105,136],[430,90,52,65]]){const py=new T.Mesh(new T.ConeGeometry(q2[2],q2[3],4),m2);py.position.set(PYX+q2[0],q2[3]/2,PYZ+q2[1]);py.rotation.y=Math.PI/4;sc3.add(py)}}
@@ -131,19 +131,62 @@ class RealMap{
    const t3=new T.Mesh(new T.CylinderGeometry(1.2,2.5,16,8),m1);t3.position.y=110;const bc=new T.Mesh(new T.SphereGeometry(1.6,8,6),new T.MeshBasicMaterial({color:0xff3040,fog:false}));bc.position.y=119;tg.add(t1,t2,t3,bc);this.towerBc=bc;tg.position.set(tw[1],0,tw[2]);sc3.add(tg)}
   // spawn at the west end of the longest bridge way (6th October Bridge)
   let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
-  const b0=bw.p[0],b1=bw.p[1];this.spawn={x:b0[0],z:b0[1],y:b0[2]||.06,h:Math.atan2(b1[0]-b0[0],b1[1]-b0[1])};
+  const si=Math.min(6,bw.p.length-2),sp0=bw.p[si],sp1=bw.p[si+1];const sq=this.query(sp0[0],sp0[1]);this.spawn={x:sp0[0],z:sp0[1],y:(sq?sq.y:sp0[2]||.06)+.02,h:Math.atan2(sp1[0]-sp0[0],sp1[1]-sp0[1])};
+  this.trafficBuild();
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
    h.innerHTML='<div style="position:absolute;top:calc(var(--sat) + 10px);left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:14px" class="glass"><small>القاهرة الحقيقية (تجريبي) - © OpenStreetMap contributors</small></div>'+
    '<div class="glass" style="position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 12px);padding:6px 18px;border-radius:16px;text-align:center"><b id="realSpd" style="font-size:28px">0</b> <small>كم/س</small></div>';
    document.body.appendChild(h)}
   this.built=true}
+ // ---------- v46: ambient traffic on the real roads ----------
+ posAt(e,s){const c=e.cum,p=e.w.p;let lo=0,hi=c.length-1;while(lo<hi-1){const m=(lo+hi)>>1;if(c[m]<=s)lo=m;else hi=m}const t=cl((s-c[lo])/((c[lo+1]-c[lo])||1e-6),0,1),a=p[lo],b=p[lo+1];return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,((a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t)]}
+ trafficBuild(){const tw=[];for(const w2 of this.ways){if(w2.c>4)continue;let L=0;const cum=[0];for(let k=1;k<w2.p.length;k++){L+=Math.hypot(w2.p[k][0]-w2.p[k-1][0],w2.p[k][1]-w2.p[k-1][1]);cum.push(L)}if(L>150)tw.push({w:w2,L,cum})}
+  this.tways=tw;if(!tw.length)return;const N=this.low?8:14;this.ag=[];const rnd2=(a,b)=>a+Math.random()*(b-a),pk=a2=>a2[Math.floor(Math.random()*a2.length)];this.trnd=rnd2;this.tpk=pk;
+  const bg=new T.BoxGeometry(1.78,.62,4.15);bg.translate(0,.64,0);
+  const cg=new T.BoxGeometry(1.56,.55,2.05);cg.translate(0,1.18,-.2);
+  const tg2=new T.BoxGeometry(1.5,.15,.1);tg2.translate(0,.74,-2.06);
+  const hg2=new T.BoxGeometry(1.5,.13,.1);hg2.translate(0,.66,2.06);
+  const bm=this.agB=new T.InstancedMesh(bg,new T.MeshStandardMaterial({roughness:.5,metalness:.4}),N),
+   cm=new T.InstancedMesh(cg,new T.MeshStandardMaterial({color:col(0x10131a),roughness:.35,metalness:.2}),N),
+   tm=new T.InstancedMesh(tg2,new T.MeshBasicMaterial({color:0xff2a20,fog:false}),N),
+   hm=new T.InstancedMesh(hg2,new T.MeshBasicMaterial({color:0xfff0c8,fog:false}),N);
+  this.agM=[bm,cm,tm,hm];this.agO=new T.Object3D();this.scene.add(bm,cm,tm,hm);
+  const cc=new T.Color();for(let k=0;k<N;k++){const a={v:0,cruise:rnd2(8,13),lane:2.4,x:0,z:0,y:.06,h:0,s:0,dir:1,e:tw[0]};this.ag.push(a);this.agPlace(a,k,60);bm.setColorAt(k,cc.setHex(pk([0x9da1a6,0xeeeeee,0x2a3140,0x7a1f1f,0x244a6a,0x6b6b60,0xb8b2a0,0xd8d8d0,0x1a1a1c])))}
+  if(bm.instanceColor)bm.instanceColor.needsUpdate=true}
+ agPlace(a,k,minD){const tw=this.tways,rnd2=this.trnd,pl=this.pl;
+  for(let t=0;t<30;t++){const e=tw[Math.floor(Math.random()*tw.length)],s=rnd2(15,e.L-15),pos=this.posAt(e,s);
+   if(pl&&Math.hypot(pos[0]-pl.x,pos[1]-pl.z)<minD)continue;let ok=true;for(const o of this.ag)if(o!==a&&o.e===e&&Math.abs(o.s-s)<18){ok=false;break}if(!ok)continue;
+   a.e=e;a.s=s;a.dir=Math.random()<.5?1:-1;a.v=a.cruise*.7;return}
+  a.e=tw[0];a.s=15;a.dir=1}
+ agCont(a){const e=a.e,rnd2=this.trnd;let best=null,bd=15;for(const e2 of this.tways){if(e2===e)continue;
+   for(const end of[[0,1],[e2.L,-1]]){const p=this.posAt(e2,end[0]==0?0:e2.L),d=Math.hypot(p[0]-a.x,p[1]-a.z);if(d<bd){const hd=Math.atan2(Math.sin(a.h)*end[1],Math.cos(a.h)*end[1]);if(Math.abs(wrap(hd-a.h))<1.4){best=[e2,end[1]];bd=d}}}}
+  if(best){a.e=best[0];a.dir=best[1];a.s=best[1]>0?4:best[0].L-4}else a.dir=-a.dir}
+ trafficUpd(dt){const pl=this.pl,o=this.agO,sig=this.sig,tp=this.tlP;
+  for(let k=0;k<this.ag.length;k++){const a=this.ag[k],e=a.e;
+   const pos=this.posAt(e,a.s),nx2=this.posAt(e,cl(a.s+a.dir*4,0,e.L));let dx=nx2[0]-pos[0],dz=nx2[1]-pos[1];const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const rx=-dz,rz=dx;
+   let vt=a.cruise;
+   if(sig)for(let j=0;j<sig.length;j++){const q2=sig[j],sx=q2[0]+6-a.x,sz=q2[1]+6-a.z,f=sx*dx+sz*dz;if(f>0&&f<42){const l=sx*rx+sz*rz;if(Math.abs(l)<11&&((j%2===0)===tp))vt=Math.min(vt,Math.max(0,(f-7)*.8))}}
+   const chk=(ox,oz)=>{const ddx=ox-a.x,ddz=oz-a.z,f=ddx*dx+ddz*dz,l=ddx*rx+ddz*rz;if(f>0&&f<15+a.v&&Math.abs(l)<2.5)vt=Math.min(vt,Math.max(0,(f-5.2)*.7))};
+   chk(pl.x,pl.z);for(const o2 of this.ag)if(o2!==a)chk(o2.x,o2.z);
+   a.v+=cl(vt-a.v,-9*dt,3*dt);a.s+=a.dir*a.v*dt;
+   if(a.s>e.L-5||a.s<5){a.s=cl(a.s,4,e.L-4);const p2=this.posAt(e,a.s);a.x=p2[0];a.z=p2[1];a.h=Math.atan2(dx,dz);this.agCont(a)}
+   const pp=this.posAt(e,a.s);a.x=pp[0]+rx*a.lane;a.z=pp[1]+rz*a.lane;a.y=pp[2];
+   const th=Math.atan2(dx,dz);a.h+=wrap(th-a.h)*Math.min(1,5*dt);
+   if(Math.hypot(a.x-pl.x,a.z-pl.z)>540){this.agPlace(a,k,170);
+    const e3=a.e,p3=this.posAt(e3,a.s),n3=this.posAt(e3,cl(a.s+a.dir*4,0,e3.L));let hx=n3[0]-p3[0],hz=n3[1]-p3[1];const hl=Math.hypot(hx,hz)||1;hx/=hl;hz/=hl;
+    a.x=p3[0]-hz*a.lane;a.z=p3[1]+hx*a.lane;a.y=p3[2];a.h=Math.atan2(hx,hz)}
+   o.position.set(a.x,a.y+.03,a.z);o.rotation.set(0,a.h,0);o.scale.set(1,1,1);o.updateMatrix();
+   for(const m of this.agM)m.setMatrixAt(k,o.matrix)}
+  for(const m of this.agM)m.instanceMatrix.needsUpdate=true;
+  const p=pl,sn=Math.sin(p.h),cs=Math.cos(p.h);
+  for(const a of this.ag){for(const o1 of[-1.2,1.2]){const px=p.x+sn*o1,pz=p.z+cs*o1,dx2=px-a.x,dz2=pz-a.z,d=Math.hypot(dx2,dz2);if(d<2.6&&d>.01){const nx=dx2/d,nz=dz2/d,ov=2.6-d;p.x+=nx*ov*.65;p.z+=nz*ov*.65;a.v*=.85;const wv=p.wv(),vin=wv[0]*nx+wv[1]*nz;if(vin<0)p.setWv(wv[0]-1.2*vin*nx,wv[1]-1.2*vin*nz)}}}}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
  update(dt){const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
   if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
   if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
-  this.cy+=(ty-this.cy)*Math.min(1,5*dt)}
+  this.cy+=(ty-this.cy)*Math.min(1,5*dt);if(this.agM)this.trafficUpd(dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);
   const I={steer:s,thr:k.up?1:0,brk:k.down?1:0,hb:k.hb?1:0};p.grip=this.onRoad(p.x,p.z)?1:.85;if(p.dmg>=100)I.thr=0;
   p.step(h,I);const B=this.bounds;if(p.x<B.x0)p.x=B.x0;if(p.x>B.x1)p.x=B.x1;if(p.z<B.z0)p.z=B.z0;if(p.z>B.z1)p.z=B.z1}

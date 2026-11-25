@@ -202,8 +202,8 @@ class World{
 }
 class Preview{
  constructor(cv){this.r=new T.WebGLRenderer({canvas:cv,antialias:true});this.r.setPixelRatio(Math.min(window.devicePixelRatio||1,2));this.r.outputEncoding=T.sRGBEncoding;this.r.toneMapping=T.ACESFilmicToneMapping;this.r.shadowMap.enabled=true;
-  const s=this.s=new T.Scene();s.background=new T.Color(0x1e1e1e);this.r.toneMappingExposure=.9;this.rt=envFor(this.r,'morning');s.environment=this.rt.texture;const k=new T.DirectionalLight(0xffffff,2.4);k.position.set(4,7,5);k.castShadow=true;s.add(k,new T.HemisphereLight(0xffffff,0x333333,.5));
-  const fl=new T.Mesh(new T.CircleGeometry(6,48),new T.MeshStandardMaterial({color:col(0x2a2a2a),roughness:.7,metalness:.2}));fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;s.add(fl);
+  const s=this.s=new T.Scene();s.background=new T.Color(0x0a1024);this.r.toneMappingExposure=.9;this.rt=envFor(this.r,'morning');s.environment=this.rt.texture;const k=new T.DirectionalLight(0xe8eeff,2.4);k.position.set(4,7,5);k.castShadow=true;s.add(k,new T.HemisphereLight(0xbfd0ff,0x101425,.55));
+  const fl=new T.Mesh(new T.CircleGeometry(6,48),new T.MeshStandardMaterial({color:col(0x1a2340),roughness:.7,metalness:.2}));fl.rotation.x=-Math.PI/2;fl.receiveShadow=true;s.add(fl);
   this.cam=new T.PerspectiveCamera(34,16/9,.1,60);this.holder=new T.Group();s.add(this.holder);this.car=null}
  set(d){if(this.car)this.holder.remove(this.car.g);this.car=makeCar(d);this.car.g.traverse(o=>{if(o.isMesh)o.castShadow=true});this.holder.add(this.car.g)}
  render(t){const cv=this.r.domElement,w=cv.clientWidth,h=cv.clientHeight;if(w<2)return;if(cv.width!==Math.round(w*this.r.getPixelRatio())){this.r.setSize(w,h,false);this.cam.aspect=w/h;this.cam.updateProjectionMatrix()}

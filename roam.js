@@ -407,4 +407,4 @@ pickKind(){const d=this.d;if(d.ch<CH.length&&CH[d.ch].k!=='any')return CH[d.ch].
   if(t){const dx=t.x-p.x,dz=t.z-p.z,dd=Math.hypot(dx,dz),s=dd>R*.9?R*.9/dd:1;x.fillStyle=this.job.stage==='pickup'?'#30ff80':'#ff9a1f';x.beginPath();x.arc((p.x+dx*s)*k,(p.z+dz*s)*k,5,0,7);x.fill();x.strokeStyle='#fff';x.lineWidth=1.5;x.stroke()}
   x.restore();x.save();x.translate(S2/2,S2/2);x.fillStyle='#FF8A1F';x.beginPath();x.moveTo(0,-7);x.lineTo(5,6);x.lineTo(-5,6);x.closePath();x.fill();x.restore()}
 }
-S.Roam=Roam;})(window.SS);
+S.winTex=winTex;S.glowTex=glowTex;S.Roam=Roam;})(window.SS);

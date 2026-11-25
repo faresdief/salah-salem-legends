@@ -10,7 +10,7 @@ An Egyptian 3D browser racing game (Three.js) with locally iconic cars, race and
 
 ## الجديد | What's in the game
 
-- **القاهرة الحقيقية (تجريبي)** | **Real Cairo (preview)**: نمط جديد بيبني الطرق من بيانات OpenStreetMap الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، والنيل تحت الكوبري، وبرج القاهرة على إحداثياته الحقيقية | a preview mode driving real OSM road geometry: Zamalek, the 6th October Bridge to Downtown, the Nile, and Cairo Tower at its real coordinates
+- **القاهرة الحقيقية (تجريبي)** | **Real Cairo (preview)**: نمط جديد بيبني الطرق من بيانات OpenStreetMap الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، والنيل تحت الكوبري، وبرج القاهرة على إحداثياته الحقيقية — ودلوقتي المدينة مضيّة بالكامل: عمارات بشبابيك نور على جنبات الطرق، أعمدة إنارة، سما بنجوم وقمر، خط عمارات على الأفق، وإشارات مرور حقيقية من OSM، وطريق الهرم مفتوح لحد هضبة الجيزة والأهرامات بحجمها الحقيقي | a preview mode driving real OSM road geometry: Zamalek, the 6th October Bridge to Downtown, the Nile, and Cairo Tower at its real coordinates — now a full night city: lit-window buildings along the roads, street lamps, stars and moon, a skyline ring, real OSM traffic signals, and Pyramids Road open all the way to the Giza plateau with real-scale pyramids
 
 - **دهان العربيات في الورشة**: غيّر لون أي عربية عندك من الورشة (6 ألوان، 250 جنيه للدهان، والرجوع للأصلي ببلاش) | paint any owned car at the shop (6 colors, 250 EGP, revert free)
 - **مهام يومية**: 3 مهام جديدة كل يوم (مشاوير، أرباح، مشاوير نضيفة، 5 نجوم، توصيل، VIP) بمكافآت فلوس | 3 fresh daily missions with coin rewards

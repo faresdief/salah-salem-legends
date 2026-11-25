@@ -9,7 +9,7 @@ class RealMap{
  constructor(g){this.g=g;this.on=false;this.built=false;this.cy=0;this.initMenu();
   addEventListener('keydown',e=>{if(!this.on)return;if(e.code==='KeyC')this.g.view=this.g.view?0:1})}
  initMenu(){const m=document.querySelector('.modes-card');if(!m||$('realCard'))return;const c=document.createElement('div');c.className='card';c.id='realCard';
-  c.innerHTML='<h2>القاهرة الحقيقية (تجريبي)</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وبرج القاهرة جنبك. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
+  c.innerHTML='<h2>القاهرة الحقيقية (تجريبي)</h2><p class="foot">قُد على طرقات القاهرة الحقيقية: من الزمالك على كوبري 6 أكتوبر لوسط البلد، وطريق الهرم لحد الأهرامات. بيانات الخريطة © OpenStreetMap contributors (ODbL)</p><button class="btn primary" id="realGo">قُد على كوبري أكتوبر</button>';m.parentNode.insertBefore(c,m);
   $('realGo').onclick=()=>{this.g.audio.init();this.start()}}
  async start(){const g=this.g;if(!g.world)return;
   if(!this.data){try{const r=await fetch('realmap-data.json');this.data=await r.json()}catch(e){console.error(e);g.popup('بيانات الخريطة مش موجودة');return}}
@@ -29,10 +29,10 @@ class RealMap{
   const p=this.pl=new Vehicle(g.tuned(d));p.opt=g.opt;const sp2=this.spawn;p.reset(sp2.x,sp2.z,sp2.h);this.cy=sp2.y;
   this.pcar=S.makeCar(d,true);this.scene.add(this.pcar.g);this.ch=p.h;this.bump=0}
  build(){const g=this.g,w=g.world,sc3=this.scene=new T.Scene();
-  sc3.background=new T.Color(0x070b16);sc3.fog=new T.FogExp2(col(0x070b16),.0022);
+  sc3.background=new T.Color(0x070b16);sc3.fog=new T.FogExp2(col(0x070b16),.0006);
   this.hemi=new T.HemisphereLight(col(0x7f94c8),col(0x1e2028),.7);sc3.add(this.hemi);
   this.moon=new T.DirectionalLight(col(0xa8bce8),.75);this.moon.castShadow=true;{const s=this.moon.shadow;s.mapSize.set(1024,1024);Object.assign(s.camera,{left:-55,right:55,top:55,bottom:-55,near:1,far:400});s.camera.updateProjectionMatrix();s.bias=-.0005;s.normalBias=.05}sc3.add(this.moon,this.moon.target);
-  const gnd=new T.Mesh(new T.PlaneGeometry(16000,16000),new T.MeshStandardMaterial({color:col(0x24231f),roughness:1}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-.03;gnd.receiveShadow=true;sc3.add(gnd);
+  const gnd=new T.Mesh(new T.PlaneGeometry(24000,24000),new T.MeshStandardMaterial({color:col(0x24231f),roughness:1}));gnd.rotation.x=-Math.PI/2;gnd.position.set(-2800,-.03,2600);gnd.receiveShadow=true;sc3.add(gnd);
   // decode ways to meter polylines with deck heights
   const ways=[];let bx0=1e9,bx1=-1e9,bz0=1e9,bz1=-1e9;
   for(const w2 of this.data.w){const f=w2[4],n=f.length/2,pts=[];const H=w2[1]?Math.max(1,w2[2])*LH:0;
@@ -58,16 +58,6 @@ class RealMap{
     while(d2<L){const t=d2/L,y=a[2]+(b[2]-a[2])*t;if(y>3)prs.push([a[0]+(b[0]-a[0])*t,y,a[1]+(b[1]-a[1])*t]);d2+=35}acc=(acc+L)%35}}
   const pi=new T.InstancedMesh(new T.BoxGeometry(3,1,3),new T.MeshStandardMaterial({color:col(0x55534e),roughness:.95}),prs.length),o=new T.Object3D();
   prs.forEach((q2,i)=>{o.position.set(q2[0],q2[1]/2,q2[2]);o.scale.set(1,q2[1],1);o.updateMatrix();pi.setMatrixAt(i,o.matrix)});sc3.add(pi);
-  // the Nile: wide dark ribbons along water polylines
-  const wp=[],wn=[],wc=[],wi=[];
-  for(const pl of this.data.n){for(let i=0;i<pl.length/2-1;i++){const a=[pl[2*i]/10,pl[2*i+1]/10],b=[pl[2*i+2]/10,pl[2*i+3]/10],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,hw=170;
-   quad(wp,wn,wc,wi,[a[0]+nx*hw,.02,a[1]+nz*hw],[a[0]-nx*hw,.02,a[1]-nz*hw],[b[0]-nx*hw,.02,b[1]-nz*hw],[b[0]+nx*hw,.02,b[1]+nz*hw],[0,1,0],[.05,.14,.24])}}
-  if(wp.length){const wm=mk(wp,wn,wc,wi,null,null,new T.MeshStandardMaterial({vertexColors:true,roughness:.15,metalness:.4,emissive:col(0x0c2640),emissiveIntensity:.85}));sc3.add(wm)}
-  // Cairo Tower at its real coordinates
-  const tw=this.data.lm.find(l=>l[0]==='برج القاهرة');
-  if(tw){const tg=new T.Group(),m1=new T.MeshStandardMaterial({color:col(0xb9b4a8),roughness:.7,emissive:col(0x2a2b33),emissiveIntensity:.5});
-   const t1=new T.Mesh(new T.CylinderGeometry(6,9,90,14),m1);t1.position.y=45;const t2=new T.Mesh(new T.CylinderGeometry(13,7,14,14),new T.MeshStandardMaterial({color:col(0xa9a398),emissive:col(0xffd890),emissiveIntensity:.9}));t2.position.y=95;
-   const t3=new T.Mesh(new T.CylinderGeometry(1.2,2.5,16,8),m1);t3.position.y=110;tg.add(t1,t2,t3);tg.position.set(tw[1],0,tw[2]);sc3.add(tg)}
   // spatial hash for onRoad + deck height
   const CS=25,hash=new Map(),key=(x,z)=>Math.floor(x/CS)+','+Math.floor(z/CS);
   ways.forEach((w2,wi2)=>{const p=w2.p;for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1];
@@ -77,8 +67,70 @@ class RealMap{
    for(const q2 of L2){const w2=ways[q2[0]],p=w2.p,a=p[q2[1]],b=p[q2[1]+1],abx=b[0]-a[0],abz=b[1]-a[1],ll=abx*abx+abz*abz;if(ll<.001)continue;let t=((x-a[0])*abx+(z-a[1])*abz)/ll;t=cl(t,0,1);
     const px=a[0]+abx*t,pz=a[1]+abz*t,d=Math.hypot(x-px,z-pz),hw=W2[w2.c],y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
     if(!best||d<best.d)best={d,y,hw,b:w2.b}}}return best};
+  // v45: night-city look - buildings with lit windows, street lamps, sky, skyline, signals, pyramids
+  const rnd=(s2=>()=>{s2|=0;s2=s2+0x6D2B79F5|0;let t=Math.imul(s2^s2>>>15,1|s2);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296})(77);
+  const PYX=-9230,PYZ=8932;
+  {const bpos=[],occ=new Set();
+   for(const w2 of ways){const p=w2.p,hw=W2[w2.c];
+    for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<14)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
+     for(let d=10;d<L;d+=42){const t=d/L,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
+      for(const sd of[-1,1]){if(rnd()<.66)continue;
+       const dep=10+rnd()*13,w3=10+rnd()*15,off=hw+6+dep/2+rnd()*5,bx=x+nx*off*sd,bz=z+nz*off*sd;
+       const core=Math.hypot(bx+300,bz-1600)<2300,pyr=Math.hypot(bx-PYX,bz-PYZ)<1300;
+       if(!core&&!pyr)continue;if(pyr&&rnd()<.55)continue;
+       const key=Math.floor(bx/26)+','+Math.floor(bz/26);if(occ.has(key))continue;
+       const u=this.query(bx,bz);if(u&&u.d<8)continue;
+       occ.add(key);const h=pyr?6+rnd()*10:10+rnd()*(rnd()<.12?55:26);
+       bpos.push([bx,h,bz,w3,dep,Math.atan2(dx,dz),.42+rnd()*.32])}}}}
+   if(bpos.length){const wtx=S.winTex(),bm=new T.MeshStandardMaterial({map:wtx.map,emissiveMap:wtx.em,emissive:0xffffff,emissiveIntensity:1.1,vertexColors:true,roughness:.85});
+    const bs=new T.InstancedMesh(new T.BoxGeometry(1,1,1),bm,bpos.length),o2=new T.Object3D(),cc=new T.Color();
+    bpos.forEach((b2,k)=>{o2.position.set(b2[0],b2[1]/2,b2[2]);o2.rotation.set(0,b2[5],0);o2.scale.set(b2[3],b2[1],b2[4]);o2.updateMatrix();bs.setMatrixAt(k,o2.matrix);cc.setRGB(b2[6],b2[6]*.97,b2[6]*.9);bs.setColorAt(k,cc)});
+    o2.rotation.set(0,0,0);o2.scale.set(1,1,1);bs.receiveShadow=true;sc3.add(bs);this.nBld=bpos.length}}
+  {const lp=[];
+   for(const w2 of ways){if(w2.c>2)continue;const p=w2.p,hw=W2[w2.c];let side=1;
+    for(let i=0;i<p.length-1;i++){const a=p[i],b=p[i+1],L=Math.hypot(b[0]-a[0],b[1]-a[1]);if(L<20)continue;const dx=(b[0]-a[0])/L,dz=(b[1]-a[1])/L,nx=-dz,nz=dx;
+     for(let d=27;d<L;d+=340){side=-side;if(rnd()<.75)continue;const t=d/L,y=(a[2]||.06)+((b[2]||.06)-(a[2]||.06))*t;
+      lp.push([a[0]+(b[0]-a[0])*t+nx*(hw+1.2)*side,y,a[1]+(b[1]-a[1])*t+nz*(hw+1.2)*side,side,nx,nz])}}}
+   if(lp.length){const o2=new T.Object3D();
+    const pm2=new T.InstancedMesh(new T.CylinderGeometry(.09,.13,7.5,4),new T.MeshStandardMaterial({color:col(0x4a4e55),metalness:.5,roughness:.6}),lp.length);
+    const hm2=new T.InstancedMesh(new T.BoxGeometry(.5,.12,1.3),new T.MeshBasicMaterial({color:0xffd6a0}),lp.length);
+    const gm2=new T.InstancedMesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({map:S.glowTex(),transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.65,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3}),lp.length);
+    lp.forEach((q2,k)=>{o2.rotation.set(0,0,0);o2.scale.set(1,1,1);o2.position.set(q2[0],q2[1]+3.75,q2[2]);o2.updateMatrix();pm2.setMatrixAt(k,o2.matrix);
+     o2.position.set(q2[0]-q2[4]*1.2*q2[3],q2[1]+7.4,q2[2]-q2[5]*1.2*q2[3]);o2.updateMatrix();hm2.setMatrixAt(k,o2.matrix);
+     o2.position.set(q2[0]-q2[4]*1.8*q2[3],q2[1]+.12,q2[2]-q2[5]*1.8*q2[3]);o2.rotation.set(-Math.PI/2,0,0);o2.scale.set(15,15,1);o2.updateMatrix();gm2.setMatrixAt(k,o2.matrix)});
+    o2.rotation.set(0,0,0);o2.scale.set(1,1,1);sc3.add(pm2,hm2,gm2);this.nLamp=lp.length}}
+  {const N2=750,pa=new Float32Array(N2*3);for(let q=0;q<N2;q++){const th=rnd()*6.283,ph=rnd()*.45+.05,r=8000;pa[q*3]=-2800+r*Math.cos(th)*Math.cos(ph);pa[q*3+1]=r*Math.sin(ph);pa[q*3+2]=2600+r*Math.sin(th)*Math.cos(ph)}
+   const gg2=new T.BufferGeometry();gg2.setAttribute('position',new T.BufferAttribute(pa,3));
+   const st=new T.Points(gg2,new T.PointsMaterial({color:0xafc4ee,size:2.4,sizeAttenuation:false,transparent:true,opacity:.8,fog:false,depthWrite:false}));st.frustumCulled=false;sc3.add(st);
+   const spr=new T.Sprite(new T.SpriteMaterial({map:S.glowTex(),color:0xbfd4ff,fog:false,depthWrite:false}));spr.scale.set(1600,1600,1);spr.position.set(5200,3800,-4200);sc3.add(spr)}
+  {const N3=120,o2=new T.Object3D(),cc=new T.Color(),sm=new T.InstancedMesh(new T.BoxGeometry(1,1,1),new T.MeshStandardMaterial({vertexColors:true,roughness:.95}),N3);
+   for(let k=0;k<N3;k++){const th=k/N3*6.283+rnd()*.2,r=1400+rnd()*800,h=45+rnd()*130,w3=25+rnd()*45;
+    o2.position.set(Math.cos(th)*r,h/2,1600+Math.sin(th)*r);o2.rotation.set(0,rnd()*3,0);o2.scale.set(w3,h,w3);o2.updateMatrix();sm.setMatrixAt(k,o2.matrix);
+    cc.setRGB(.05+rnd()*.04,.06+rnd()*.04,.09+rnd()*.05);sm.setColorAt(k,cc)}
+   o2.rotation.set(0,0,0);o2.scale.set(1,1,1);sc3.add(sm)}
+  if(this.data.tl&&this.data.tl.length){const tl=this.data.tl.filter(q2=>{const u=this.query(q2[0]+6,q2[1]+6);return u&&u.d<30&&u.y<2});
+   if(tl.length){const o2=new T.Object3D(),cc=new T.Color();
+    const pm3=new T.InstancedMesh(new T.CylinderGeometry(.08,.11,4.6,5),new T.MeshStandardMaterial({color:col(0x3c4046),metalness:.5,roughness:.6}),tl.length);
+    const lm3=this.tlL=new T.InstancedMesh(new T.SphereGeometry(.22,8,6),new T.MeshBasicMaterial({color:0xffffff,fog:false}),tl.length);
+    tl.forEach((q2,k)=>{o2.position.set(q2[0]+6,2.3,q2[1]+6);o2.updateMatrix();pm3.setMatrixAt(k,o2.matrix);
+     o2.position.set(q2[0]+6,4.8,q2[1]+6);o2.updateMatrix();lm3.setMatrixAt(k,o2.matrix);lm3.setColorAt(k,cc.set(k%2?0xff3226:0x2fe06a))});
+    this.tlN=tl.length;sc3.add(pm3,lm3)}}
+  {const m2=new T.MeshStandardMaterial({color:col(0xcaa877),roughness:.9,emissive:col(0x4a3a20),emissiveIntensity:1.1});
+   const pg=new T.Mesh(new T.PlaneGeometry(1100,1100),new T.MeshBasicMaterial({map:S.glowTex(),color:0xffc98a,transparent:true,blending:T.AdditiveBlending,depthWrite:false,opacity:.4,fog:false}));pg.rotation.x=-Math.PI/2;pg.position.set(PYX+160,.4,PYZ+10);sc3.add(pg);
+   for(const q2 of[[0,0,115,139],[215,-60,105,136],[430,90,52,65]]){const py=new T.Mesh(new T.ConeGeometry(q2[2],q2[3],4),m2);py.position.set(PYX+q2[0],q2[3]/2,PYZ+q2[1]);py.rotation.y=Math.PI/4;sc3.add(py)}}
+
+  // the Nile: wide dark ribbons along water polylines
+  const wp=[],wn=[],wc=[],wi=[];
+  for(const pl of this.data.n){for(let i=0;i<pl.length/2-1;i++){const a=[pl[2*i]/10,pl[2*i+1]/10],b=[pl[2*i+2]/10,pl[2*i+3]/10],dx=b[0]-a[0],dz=b[1]-a[1],L=Math.hypot(dx,dz);if(L<.01)continue;const nx=-dz/L,nz=dx/L,hw=170;
+   quad(wp,wn,wc,wi,[a[0]+nx*hw,.02,a[1]+nz*hw],[a[0]-nx*hw,.02,a[1]-nz*hw],[b[0]-nx*hw,.02,b[1]-nz*hw],[b[0]+nx*hw,.02,b[1]+nz*hw],[0,1,0],[.05,.14,.24])}}
+  if(wp.length){const wm=mk(wp,wn,wc,wi,null,null,new T.MeshStandardMaterial({vertexColors:true,roughness:.08,metalness:.6,emissive:col(0x12395c),emissiveIntensity:1.35}));sc3.add(wm)}
+  // Cairo Tower at its real coordinates
+  const tw=this.data.lm.find(l=>l[0]==='برج القاهرة');
+  if(tw){const tg=new T.Group(),m1=new T.MeshStandardMaterial({color:col(0xb9b4a8),roughness:.7,emissive:col(0x2a2b33),emissiveIntensity:.5});
+   const t1=new T.Mesh(new T.CylinderGeometry(6,9,90,14),m1);t1.position.y=45;const t2=new T.Mesh(new T.CylinderGeometry(13,7,14,14),new T.MeshStandardMaterial({color:col(0xa9a398),emissive:col(0xffd890),emissiveIntensity:.9}));t2.position.y=95;
+   const t3=new T.Mesh(new T.CylinderGeometry(1.2,2.5,16,8),m1);t3.position.y=110;const bc=new T.Mesh(new T.SphereGeometry(1.6,8,6),new T.MeshBasicMaterial({color:0xff3040,fog:false}));bc.position.y=119;tg.add(t1,t2,t3,bc);this.towerBc=bc;tg.position.set(tw[1],0,tw[2]);sc3.add(tg)}
   // spawn at the west end of the longest bridge way (6th October Bridge)
-  let bw=null;for(const w2 of ways)if(w2.b&&(!bw||w2.p.length>bw.p.length))bw=w2;
+  let bw=null;for(const w2 of ways){if(!w2.b)continue;const cx=w2.p.reduce((a2,q2)=>a2+q2[0],0)/w2.p.length,cz=w2.p.reduce((a2,q2)=>a2+q2[1],0)/w2.p.length;if(Math.hypot(cx+300,cz-1600)>3400)continue;if(!bw||w2.p.length>bw.p.length)bw=w2}
   const b0=bw.p[0],b1=bw.p[1];this.spawn={x:b0[0],z:b0[1],y:b0[2]||.06,h:Math.atan2(b1[0]-b0[0],b1[1]-b0[1])};
   // minimal HUD
   if(!$('realHud')){const h=document.createElement('div');h.id='realHud';h.hidden=true;h.style.cssText='position:fixed;inset:0;z-index:2;pointer-events:none;direction:rtl';
@@ -88,6 +140,8 @@ class RealMap{
   this.built=true}
  onRoad(x,z){const q=this.query(x,z);return q&&q.d<q.hw+2.5}
  update(dt){const n=Math.max(1,Math.min(8,Math.ceil(dt*120))),h=dt/n;for(let i=0;i<n;i++)this.sim(h);
+  if(this.towerBc)this.towerBc.visible=Math.sin(this.g.t*2.4)>0;
+  if(this.tlL){this.tlT=(this.tlT||0)+dt;if(this.tlT>5){this.tlT=0;this.tlP=!this.tlP;const cc=new T.Color();for(let k=0;k<this.tlN;k++)this.tlL.setColorAt(k,cc.set((k%2===0)===this.tlP?0xff3226:0x2fe06a));this.tlL.instanceColor.needsUpdate=true}}
   const p=this.pl,q=this.query(p.x,p.z);let ty=0;if(q){if(q.b&&q.d<q.hw+1.5)ty=q.y;else if(q.y>1&&q.d<q.hw+6)ty=q.y}
   this.cy+=(ty-this.cy)*Math.min(1,5*dt)}
  sim(h){const g=this.g,p=this.pl,k=g.keys;let s=(k.right?1:0)-(k.left?1:0);if(g.opt.tilt&&matchMedia('(pointer:coarse)').matches)s=cl(s+(g.opt.inv?-1:1)*g.tilt/20,-1,1);s=cl(s+(g.wv||0),-1,1);

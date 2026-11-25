@@ -9,6 +9,9 @@ An Egyptian 3D browser racing game (Three.js) with locally iconic cars, race and
 ## الجديد | What's in the game
 
 - **إشارات مرور وزحمة ومشاة**: إشارات شغالة على التقاطعات الكبيرة (العربيات بتقف على الأحمر، وعدّيتها عليك غرامة)، وشوارع زحمة أكتر ومشاة على الأرصفة | working traffic lights at the big intersections (AI stops on red, running a red costs a fine), busier streets and sidewalk pedestrians
+- **تقييم الركاب**: كل راكب بيقيّمك من 1 لـ5 نجوم على السواقة (خبطات وتأخير بيقلّلوا)، والتقييم العالي بيزوّد البقشيش | passenger 1-5 star ratings per ride; a high average boosts tips
+- **زباين VIP ومشاوير مطار**: زبون VIP دهبي بأجرة كبيرة ووقت ضيق، ومشاوير طويلة لمبنى المطار الجديد | gold VIP fares with tight timers and long airport runs to the new terminal
+- **شتا خفيف وكمائن**: مطر خفيف بيهطل من وقت للتاني (الطريق بيبقى أنزلق)، وكمائن مرور على الكورنيش بتحصّل الغرامات المتأخرة | light rain spells with lower grip, and police checkpoints that collect unpaid fines
 - **ورشة وترقيات للتاكسي**: ورشة في المدينة (علامة زرقا على الخريطة) بتصلّح أرخص وبتبيع ترقيات للمحرك والكاوتش والتنك بـ٣ مستويات | a repair shop in the city (blue marker) with cheaper repairs and 3-level engine/tires/fuel-tank upgrades
 - **راديو في التاكسي**: زرار «راديو» بيشغّل محطتين مولّدين بالصوتيات (شرقي وفيرنا FM) | an in-taxi radio button cycling two synthesized stations (شرقي / فيرنا FM)
 - **بنزين وبنزينات وأحداث**: عداد بنزين، 3 بنزينات برتقالي على الخريطة، جركن طوارئ، وأحداث عشوائية (بقشيش، جركن، ساعة الذروة ×1.5) | fuel gauge, 3 gas stations, emergency jerrycan, random events

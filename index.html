@@ -1171,7 +1171,7 @@ pickKind(){const d=this.d;if(d.ch<CH.length&&CH[d.ch].k!=='any')return CH[d.ch].
    this.chat-=dt;if(this.chat<=0&&j.kind!=='delivery'){this.chat=rnd(13,22);const sk=p.speed*3.6;if(sk>115)this.say(pick(L_FAST));else if(sk<25&&j.left<j.tmax*.5&&j.left>0)this.say(pick(L_SLOW))}}
   if(j.mk&&j.mk.userData.rg){const s=1+.06*Math.sin(this.g.t*5);j.mk.userData.rg.scale.set(s,s,1)}
   if(j.pp&&j.pp.userData.arm)j.pp.userData.arm.rotation.z=2.4+Math.sin(this.g.t*7)*.5}
- board(){const j=this.job;j.stage='ride';j.t=0;j.left=j.tmax;j.dmg0=this.pl.dmg;if(j.pp){this.scene.remove(j.pp);j.pp=null}
+ board(){const j=this.job;j.stage='ride';j.t=0;j.left=j.tmax;j.dmg0=this.pl.dmg;if(j.pp){this.scene.remove(j.pp);j.pp=null}if(j.bc){this.scene.remove(j.bc.g);j.bc=null}
   if(j.wps.length)this.setMk(0x40a0ff,j.wps[0],14);else this.setMk(0xff9a1f,j.dr,9);this.chat=rnd(8,12);this.g.audio.unlock();this.g.popup(j.kind==='delivery'?'استلمت الطلب':j.name+': '+pick(L_BOARD));
   if(j.kind==='tour')this.g.popup('الجولة: '+j.wps.map(w=>w.n).join(' ثم '))}
  finish(){const j=this.job,p=this.pl,d=this.d,g=this.g,taxi=CARS[g.sel].id==='taxi',k=j.kind,mult=(this.surge?1.5:1)*(k==='rush'?1.6:k==='gentle'?(j.fail?.55:1.5):k==='tour'?1.8:k==='delivery'?1.4:k==='rescue'?1.7:k==='vip'?2.2:k==='airport'?2:1),base=Math.round((25+j.dist*.085)*mult),tipMax=Math.round(base*.3);
@@ -1626,7 +1626,7 @@ class Game{
  sim(h){const p=this.pl,tk=this.tk,k=this.keys,I=this.inp,len=tk.len;
   if(this.state==='COUNT'){this.cd-=h;p.thr+=((k.up?1:0)-p.thr)*h*5;p.rpm=900+p.thr*3600;p.gear=0;if(this.cd<=0){this.state='RACING';this.raceT=0;$('count').textContent='انطلق';setTimeout(()=>{if(this.state!=='MENU')$('count').hidden=true},900)}}
   else{I.steer=(k.right?1:0)-(k.left?1:0);if(this.opt.tilt&&this.coarse)I.steer=cl(I.steer+(this.opt.inv?-1:1)*this.tilt/20,-1,1);I.steer=cl(I.steer+(this.wv||0),-1,1);I.thr=k.up?1:0;I.brk=k.down?1:0;I.hb=k.hb?1:0;if(this.state==='FIN'){I.steer=0;I.thr=0;I.brk=.5;I.hb=0}
-   const ad=Math.abs(this.loc.d);p.grip=ad<7.5?1:ad<8.4?.96:.72;if(this.atm==='rain')p.grip*=.88;if(this.oil>0){this.oil-=h;p.grip*=.42}if(this.nit>0){this.nit-=h;if(p.vx>0&&p.vx<p.d.vt*1.12)p.vx+=13*(1+.1*(p.d.nl|0))*h}if(this.chase)this.chaseStep(h,I);p.step(h,I);this.items(h);this.raceT+=h;
+   const ad=Math.abs(this.loc.d);p.grip=ad<8.4?1:ad<9.6?.96:.88;if(this.atm==='rain')p.grip*=.92;if(this.oil>0){this.oil-=h;p.grip*=.42}if(this.nit>0){this.nit-=h;if(p.vx>0&&p.vx<p.d.vt*1.12)p.vx+=13*(1+.1*(p.d.nl|0))*h}if(this.chase)this.chaseStep(h,I);p.step(h,I);this.items(h);this.raceT+=h;
    this.loc=tk.locate(p.x,p.z,this.loc.i);this.collide();const s=this.loc.sf*tk.ds;
    if(this.ps>len*.75&&s<len*.25){this.lap++;this.onLap()}else if(this.ps<len*.25&&s>len*.75)this.lap--;this.ps=s;this.pa.s=s;this.pa.d=this.loc.d;this.pa.v=p.speed;this.maxV=Math.max(this.maxV,p.vx*3.6);
  if(this.mode==='trial'){this.recT-=h;if(this.recT<=0){this.recT=.1;this.rec.push([+(this.raceT-this.lapStart).toFixed(2),+p.x.toFixed(2),+p.z.toFixed(2),+p.h.toFixed(3)])}}

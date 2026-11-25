@@ -327,7 +327,7 @@ pickKind(){const d=this.d;if(d.ch<CH.length&&CH[d.ch].k!=='any')return CH[d.ch].
    this.chat-=dt;if(this.chat<=0&&j.kind!=='delivery'){this.chat=rnd(13,22);const sk=p.speed*3.6;if(sk>115)this.say(pick(L_FAST));else if(sk<25&&j.left<j.tmax*.5&&j.left>0)this.say(pick(L_SLOW))}}
   if(j.mk&&j.mk.userData.rg){const s=1+.06*Math.sin(this.g.t*5);j.mk.userData.rg.scale.set(s,s,1)}
   if(j.pp&&j.pp.userData.arm)j.pp.userData.arm.rotation.z=2.4+Math.sin(this.g.t*7)*.5}
- board(){const j=this.job;j.stage='ride';j.t=0;j.left=j.tmax;j.dmg0=this.pl.dmg;if(j.pp){this.scene.remove(j.pp);j.pp=null}
+ board(){const j=this.job;j.stage='ride';j.t=0;j.left=j.tmax;j.dmg0=this.pl.dmg;if(j.pp){this.scene.remove(j.pp);j.pp=null}if(j.bc){this.scene.remove(j.bc.g);j.bc=null}
   if(j.wps.length)this.setMk(0x40a0ff,j.wps[0],14);else this.setMk(0xff9a1f,j.dr,9);this.chat=rnd(8,12);this.g.audio.unlock();this.g.popup(j.kind==='delivery'?'استلمت الطلب':j.name+': '+pick(L_BOARD));
   if(j.kind==='tour')this.g.popup('الجولة: '+j.wps.map(w=>w.n).join(' ثم '))}
  finish(){const j=this.job,p=this.pl,d=this.d,g=this.g,taxi=CARS[g.sel].id==='taxi',k=j.kind,mult=(this.surge?1.5:1)*(k==='rush'?1.6:k==='gentle'?(j.fail?.55:1.5):k==='tour'?1.8:k==='delivery'?1.4:k==='rescue'?1.7:k==='vip'?2.2:k==='airport'?2:1),base=Math.round((25+j.dist*.085)*mult),tipMax=Math.round(base*.3);

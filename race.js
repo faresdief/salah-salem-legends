@@ -164,7 +164,7 @@ class Game{
  sim(h){const p=this.pl,tk=this.tk,k=this.keys,I=this.inp,len=tk.len;
   if(this.state==='COUNT'){this.cd-=h;p.thr+=((k.up?1:0)-p.thr)*h*5;p.rpm=900+p.thr*3600;p.gear=0;if(this.cd<=0){this.state='RACING';this.raceT=0;$('count').textContent='انطلق';setTimeout(()=>{if(this.state!=='MENU')$('count').hidden=true},900)}}
   else{I.steer=(k.right?1:0)-(k.left?1:0);if(this.opt.tilt&&this.coarse)I.steer=cl(I.steer+(this.opt.inv?-1:1)*this.tilt/20,-1,1);I.steer=cl(I.steer+(this.wv||0),-1,1);I.thr=k.up?1:0;I.brk=k.down?1:0;I.hb=k.hb?1:0;if(this.state==='FIN'){I.steer=0;I.thr=0;I.brk=.5;I.hb=0}
-   const ad=Math.abs(this.loc.d);p.grip=ad<7.5?1:ad<8.4?.96:.72;if(this.atm==='rain')p.grip*=.88;if(this.oil>0){this.oil-=h;p.grip*=.42}if(this.nit>0){this.nit-=h;if(p.vx>0&&p.vx<p.d.vt*1.12)p.vx+=13*(1+.1*(p.d.nl|0))*h}if(this.chase)this.chaseStep(h,I);p.step(h,I);this.items(h);this.raceT+=h;
+   const ad=Math.abs(this.loc.d);p.grip=ad<8.4?1:ad<9.6?.96:.88;if(this.atm==='rain')p.grip*=.92;if(this.oil>0){this.oil-=h;p.grip*=.42}if(this.nit>0){this.nit-=h;if(p.vx>0&&p.vx<p.d.vt*1.12)p.vx+=13*(1+.1*(p.d.nl|0))*h}if(this.chase)this.chaseStep(h,I);p.step(h,I);this.items(h);this.raceT+=h;
    this.loc=tk.locate(p.x,p.z,this.loc.i);this.collide();const s=this.loc.sf*tk.ds;
    if(this.ps>len*.75&&s<len*.25){this.lap++;this.onLap()}else if(this.ps<len*.25&&s>len*.75)this.lap--;this.ps=s;this.pa.s=s;this.pa.d=this.loc.d;this.pa.v=p.speed;this.maxV=Math.max(this.maxV,p.vx*3.6);
  if(this.mode==='trial'){this.recT-=h;if(this.recT<=0){this.recT=.1;this.rec.push([+(this.raceT-this.lapStart).toFixed(2),+p.x.toFixed(2),+p.z.toFixed(2),+p.h.toFixed(3)])}}

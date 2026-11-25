@@ -597,6 +597,11 @@ function makeCar(d,lit){const key=d.shape,taxi=d.id==='taxi',B=bodyGeo(key,taxi)
  for(const x of(fia?[-.4,.4]:[van?.5:.45]))add(new T.CylinderGeometry(.045,.045,.22,12),chr,x,.3,zr-.04).rotation.x=Math.PI/2;
  if(taxi){const c=document.createElement('canvas');c.width=256;c.height=80;const x=c.getContext('2d');x.fillStyle='#ffd24a';x.fillRect(0,0,256,80);x.fillStyle='#111';x.font='700 54px Tahoma,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('تاكسي',128,42);
   const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;add(Bx(.54,.17,.2),new T.MeshStandardMaterial({map:tx,emissiveMap:tx,emissive:0xffffff,emissiveIntensity:1.1}),0,F.yT(-.3)+.08,-.3)}
+  {const cc=document.createElement('canvas');cc.width=cc.height=32;const cx=cc.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,32,32);cx.fillStyle='#111';cx.fillRect(0,0,16,16);cx.fillRect(16,16,16,16);const ck=new T.CanvasTexture(cc);ck.wrapS=ck.wrapT=T.RepeatWrapping;ck.repeat.set(19,1);ck.encoding=T.sRGBEncoding;const cm=new T.MeshStandardMaterial({map:ck,roughness:.5});
+   for(const sd of[-1,1])add(Bx(.01,.12,2.3),cm,sd*(F.wb(-.1)+.008),.78,-.1);
+   const rc=new T.CanvasTexture(cc);rc.wrapS=rc.wrapT=T.RepeatWrapping;rc.repeat.set(8,1);const rm=new T.MeshStandardMaterial({map:rc,roughness:.5});add(Bx(w*.6,.1,.012),rm,0,F.yT(zr+.1)-.12,zr-.01);
+   const dc=document.createElement('canvas');dc.width=128;dc.height=48;const dx=dc.getContext('2d');dx.fillStyle='#f6c516';dx.fillRect(0,0,128,48);dx.fillStyle='#111';dx.font='700 34px Tahoma,Arial,sans-serif';dx.textAlign='center';dx.textBaseline='middle';dx.fillText('تاكسي',64,26);const dt=new T.CanvasTexture(dc);dt.encoding=T.sRGBEncoding;const dm=new T.MeshStandardMaterial({map:dt,roughness:.5});
+   for(const sd of[-1,1]){const m=add(new T.PlaneGeometry(.5,.19),dm,sd*(F.wb(.3)+.012),.55,.3);m.rotation.y=sd*Math.PI/2}}
  if(d.id==='verna'||taxi)add(Bx(w*.78,.03,.08),dark,0,F.yT(zr+.3)+.02,zr+.3);
  if(!van&&!fia)add(new T.CylinderGeometry(.008,.014,.3,6),dark,.32,F.yT(zr+.55)+.15,zr+.55).rotation.x=-.2;
  if(van){for(const sd of[-1,1])add(Bx(.008,.1,4.35),red,sd*(F.wb(0)+.004),1.12,-.15);add(Bx(1.5,.1,.01),red,0,1.12,zr-.006);add(Bx(.5,.05,.5),paint,0,2,.3)}
